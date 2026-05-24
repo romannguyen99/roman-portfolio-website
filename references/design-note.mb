@@ -1,0 +1,207 @@
+# Design Notes — Portfolio Website
+
+> Reference inspiration: monopo.vn (Tokyo-born creative studio).
+> Reference frames live in `references/screenshots/`. Review them all before generating code.
+> This document is the source of truth for design intent. When in doubt, follow this file over the screenshots.
+
+---
+
+## 1. Design Philosophy
+
+The site should feel **quiet, confident, and cinematic**. Empty space is a feature, not a gap to fill. Motion is slow and deliberate — nothing bounces, nothing snaps. Every interaction should feel like it has weight.
+
+Three rules that override everything else:
+
+1. **Type leads. Imagery supports.** Oversized typography is the primary visual element. Backgrounds, gradients, and images sit behind the text and never compete with it.
+2. **Black is the canvas.** The site is dark-first. Light surfaces appear only as deliberate contrast moments (case studies, contact).
+3. **Motion has mass.** Animations are long (600–1200ms), eased, and never sudden. If it feels snappy, it's wrong.
+
+---
+
+## 2. Color System
+
+Define these as CSS custom properties / Tailwind theme tokens.
+
+```
+--color-bg:        #0A0A0A   /* near-black, not pure black — softer on screens */
+--color-bg-alt:    #141414   /* secondary surface */
+--color-fg:        #F5F1EA   /* warm off-white for body text */
+--color-fg-muted:  #8A8680   /* nav links, captions, secondary text */
+--color-fg-dim:    #4A4742   /* dividers, disabled */
+--color-accent:    #D4A574   /* warm amber/gold — pulled from hero gradient */
+--color-accent-2:  #5C6B5E   /* desaturated green — secondary gradient tone */
+```
+
+The hero gradient palette (amber + dark green + black) is the **brand signature**. Reuse those exact tones in section transitions, hover states, and the loader. Do not introduce new colors without a reason.
+
+---
+
+## 3. Typography
+
+**Primary typeface:** A geometric sans-serif with a true italic that has noticeably different letterforms (the italic `i`, `t`, and `o` in monopo's hero are key — they're stylistic, almost serif-like). Good free options:
+
+- **Inter** with manual italic tweaks, OR
+- **Neue Haas Grotesk** (paid), OR
+- **General Sans** (free, on Fontshare) — recommended default
+
+Pair with a small mono for captions / metadata: **JetBrains Mono** or **Geist Mono**.
+
+**Type scale** (desktop, scale down ~30% on mobile):
+
+```
+display    clamp(4rem, 9vw, 9rem)     /* hero headline */
+h1         clamp(3rem, 6vw, 6rem)     /* section openers */
+h2         clamp(2rem, 4vw, 3.5rem)   /* sub-sections */
+h3         1.5rem                      /* card titles */
+body-lg    1.25rem                     /* lead paragraphs */
+body       1rem                        /* default */
+caption    0.75rem                     /* uppercase, tracked +0.1em */
+```
+
+**Always:**
+- Line-height tight on display sizes (0.95–1.05), comfortable on body (1.5–1.7)
+- Letter-spacing slightly negative on display (-0.02em), positive on captions (+0.1em uppercase)
+- Mix roman and italic *within* phrases for stylistic accents — e.g. `Tokyo-born, Crea`*`tive stud`*`io`. This is the monopo signature.
+
+---
+
+## 4. Layout System
+
+12-column grid, 24px gutter, max content width 1680px. Generous outer margins (clamp(2rem, 6vw, 8rem)). Sections breathe — minimum 160px vertical padding between sections on desktop, 96px on mobile.
+
+**Header (fixed, transparent over hero):**
+- Top-left: small dot/logo mark + wordmark + tag (`• monopo  saigon` style)
+- Top-center: language switcher (small, muted, pipe-separated)
+- Top-right: vertical-stacked nav links, right-aligned, uppercase, tracked, small (~12px). Items: `WORK`, `MANIFESTO`, `ABOUT`, `CONTACT` — adapt to your needs.
+
+**Hero (100vh):**
+- Full-bleed animated background (see Section 5)
+- Headline centered vertically, slightly left of center horizontally
+- Bottom-left: circular "SCROLL DOWN" badge rotating slowly (one full rotation every ~20s) with a small icon in the center
+
+**Work grid:** Asymmetric grid — alternate large/small tiles, occasional full-width breakout. Never a uniform 3×3.
+
+**Footer:** Oversized wordmark spanning full width, minimal links above it, small print at the very bottom.
+
+---
+
+## 5. The Hero Animation (most important element)
+
+Recreate the feel of the reference frame: an organic, fluid, gradient orb floating against deep black, with bands of amber gold and desaturated green flowing across it like oil on water. The whole thing drifts slowly and continuously.
+
+**Implementation options, in order of preference:**
+
+### Option A — Animated gradient mesh (recommended, lightweight)
+Use a `<canvas>` or WebGL fragment shader to render a noise-driven gradient. Libraries: **`shader-park`**, **`paper-design/shaders`**, or a hand-written GLSL shader via **`ogl`** or **`three.js`**.
+
+Shader concept:
+- Two layered radial gradients (amber center-right, green center-left) on near-black background
+- Distort UV coordinates with 3D Perlin/Simplex noise, driven by `u_time`
+- Add a soft circular mask centered top-right (the "orb")
+- Drift speed: extremely slow — `u_time * 0.05`. The viewer should feel it more than see it.
+
+### Option B — SVG + Framer Motion
+If you want zero WebGL: a large blurred SVG `<radialGradient>` with two `<feTurbulence>` filters, animated via `<animate>` or Framer Motion's `motion.svg`. Lighter, less organic, still beautiful.
+
+### Option C — Pre-rendered video loop
+Last resort. Export a 10-second seamless loop from After Effects / Blender, autoplay muted, `object-fit: cover`. Easy but heavy (3–8MB).
+
+**On top of the gradient:**
+- Headline fades + slides up on load: opacity 0 → 1, y: 24px → 0, duration 1200ms, ease `[0.22, 1, 0.36, 1]` (custom cubic-bezier — the "expo out" curve)
+- Stagger: split by word, 80ms between words
+- Delay: starts ~600ms after the loader finishes
+- Scroll-down badge fades in last, at 1800ms
+
+---
+
+## 6. Page Loader
+
+Before the hero appears: full-black screen, centered small logo mark, a thin horizontal progress line beneath it filling from 0–100% in ~1.5s. On complete, the loader fades out (400ms) and the hero animation starts.
+
+This isn't decoration — it's a deliberate pacing device. It tells the visitor *slow down, this is going to take a moment*.
+
+---
+
+## 7. Motion Language
+
+Use these tokens everywhere. Do not invent one-off durations.
+
+```
+--ease-out-expo:    cubic-bezier(0.22, 1, 0.36, 1)    /* the default — use this 90% of the time */
+--ease-in-out:      cubic-bezier(0.65, 0, 0.35, 1)    /* for state changes */
+--ease-linear:      linear                             /* only for continuous loops (orb drift, scroll badge) */
+
+--duration-fast:    300ms   /* small UI: button hovers, tooltip */
+--duration-base:    600ms   /* most transitions */
+--duration-slow:    1000ms  /* section reveals, hero entrance */
+--duration-xslow:   1400ms  /* loader, page transitions */
+```
+
+**Scroll behavior:** Use **Lenis** for smooth scrolling. Default lerp 0.08. Do not skip this — native scroll on dark animation-heavy sites feels jarring.
+
+**Scroll-triggered reveals:** Every section element fades up on entering viewport: opacity 0→1, y: 40px→0, duration 1000ms, ease-out-expo. Trigger at 15% visible. Use Framer Motion's `whileInView` or **GSAP ScrollTrigger**.
+
+**Hover states:**
+- Nav links: color shifts from `--color-fg-muted` to `--color-fg` over 300ms, with a thin underline that draws from left to right
+- Work tiles: image scales 1.0 → 1.04 over 800ms (slow!), title slides up from below with a subtle blur fade
+- Buttons: background fills from left to right with the accent color
+
+**Cursor:** Custom cursor — a small circle (10px) that scales up to 60px on hover over interactive elements, with a tiny "view" or arrow label appearing inside. Use **`react-magnetic`** or a custom hook. Hide on touch devices.
+
+---
+
+## 8. Section-by-Section Notes
+
+**Work / Projects:** Asymmetric grid. Each tile is a project preview — large image + small caption beneath (project name + year). On hover, image desaturates slightly and a short tagline overlays. Click → full case study page.
+
+**Manifesto / About:** A single long-form column of oversized statements. Each paragraph is its own scroll moment — large type, lots of space, fades in as you scroll. Think of it as a slow read, not a page.
+
+**Team:** Grid of portraits. Hover reveals name + role. Keep portraits black-and-white or heavily desaturated; restore color on hover.
+
+**Contact:** Switch to a light background (`--color-fg` becomes the background). Oversized email address as the centerpiece — clickable, with the same hover-fill animation. Minimal form below if needed.
+
+---
+
+## 9. Stack Recommendation
+
+```
+Framework:      Next.js 15 (App Router) + TypeScript
+Styling:        Tailwind CSS v4 with custom theme tokens above
+Animation:      Framer Motion (UI) + GSAP (scroll) + Lenis (smooth scroll)
+Hero shader:    OGL or three.js with custom GLSL fragment shader
+Fonts:          next/font with General Sans + JetBrains Mono
+Deployment:     Vercel
+```
+
+---
+
+## 10. Anti-Patterns — Do NOT Do These
+
+- ❌ Bright accent colors outside the amber/green palette
+- ❌ Fast snappy animations (anything under 300ms for non-trivial elements)
+- ❌ Bouncy easing curves (`easeInOutBack`, spring with high stiffness)
+- ❌ Centered uniform grids for the work section
+- ❌ Drop shadows on text — use color contrast instead
+- ❌ Emojis or decorative icons in body content
+- ❌ Auto-playing audio
+- ❌ Modal popups for newsletter signups, cookies (use a thin inline bar)
+- ❌ Light-mode toggle — the dark aesthetic is the brand
+- ❌ Generic "hamburger to full-screen menu" — on mobile, keep the vertical nav visible or use a thin slide-in panel
+
+---
+
+## 11. Build Order (for Claude Code)
+
+1. Project scaffold + fonts + theme tokens + Lenis setup
+2. Page loader
+3. Hero — start with Option B (SVG gradient) to get layout right, then upgrade to Option A (shader) once everything else works
+4. Header + navigation
+5. Work grid (with placeholder content)
+6. About / Manifesto section
+7. Contact section
+8. Single case study page template
+9. Page transitions between routes
+10. Custom cursor + polish pass
+11. Mobile responsive pass (do this last — desktop motion comes first)
+
+Build one step at a time. Show the result before moving to the next.
