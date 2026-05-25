@@ -12,15 +12,14 @@ export function getLenis(): Lenis | null {
   return instance;
 }
 
-/** Scroll down by one viewport, using Lenis when available. */
+/** Scroll down one viewport from the current position, using Lenis when available. */
 export function scrollToNext() {
-  const target = typeof window !== "undefined" ? window.innerHeight : 0;
+  if (typeof window === "undefined") return;
+  const target = window.scrollY + window.innerHeight;
   const lenis = getLenis();
   if (lenis) {
     lenis.scrollTo(target);
     return;
   }
-  if (typeof window !== "undefined") {
-    window.scrollTo({ top: target, behavior: "smooth" });
-  }
+  window.scrollTo({ top: target, behavior: "smooth" });
 }

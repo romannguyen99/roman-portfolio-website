@@ -18,12 +18,12 @@ describe("lenis registry", () => {
     const scrollTo = vi.fn();
     setLenis({ scrollTo } as unknown as Lenis);
     scrollToNext();
-    expect(scrollTo).toHaveBeenCalledWith(window.innerHeight);
+    expect(scrollTo).toHaveBeenCalledWith(window.scrollY + window.innerHeight);
   });
 
   it("scrollToNext falls back to window.scrollTo when no instance", () => {
     const spy = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     scrollToNext();
-    expect(spy).toHaveBeenCalledWith({ top: window.innerHeight, behavior: "smooth" });
+    expect(spy).toHaveBeenCalledWith({ top: window.scrollY + window.innerHeight, behavior: "smooth" });
   });
 });
