@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LOADER_SEEN_KEY } from "@/lib/session-keys";
+import { EASE_OUT_EXPO } from "@/lib/motion";
 
 // Timeline (ms) — see docs/superpowers/specs/2026-05-25-page-loader-design.md
 const FADE_IN_MS = 200;
 const FILL_MS = 1500;
 const FADE_OUT_MS = 400;
-
-// --ease-out-expo, as a Framer Motion cubic-bezier array.
-const EASE_OUT_EXPO = [0.22, 1, 0.36, 1] as const;
 
 type Phase = "enter" | "fill" | "exit";
 

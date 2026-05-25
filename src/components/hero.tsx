@@ -4,9 +4,9 @@ import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { GradientOrb } from "@/components/gradient-orb";
 import { ScrollBadge } from "@/components/scroll-badge";
 import { useHeroEntrance } from "@/hooks/use-hero-entrance";
+import { EASE_OUT_EXPO } from "@/lib/motion";
 
 const WORDS = ["Roman", "Nguyen"];
-const EASE_OUT_EXPO = [0.22, 1, 0.36, 1] as const;
 
 export function Hero() {
   const started = useHeroEntrance();
