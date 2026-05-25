@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const LOADER_SEEN_KEY = "loader-seen";
+import { LOADER_SEEN_KEY } from "@/lib/session-keys";
 
 /**
  * True once the page loader has finished (`loader:complete`) or was skipped

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-
-const LOADER_SEEN_KEY = "loader-seen";
+import { LOADER_SEEN_KEY } from "@/lib/session-keys";
 
 // Timeline (ms) — see docs/superpowers/specs/2026-05-25-page-loader-design.md
 const FADE_IN_MS = 200;
