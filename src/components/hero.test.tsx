@@ -13,4 +13,9 @@ describe("Hero", () => {
     render(<Hero />);
     expect(screen.getByRole("button", { name: /scroll down/i })).toBeInTheDocument();
   });
+
+  it("exposes the heading with an accessible name of 'Roman Nguyen'", () => {
+    render(<Hero />);
+    expect(screen.getByRole("heading", { name: "Roman Nguyen" })).toBeInTheDocument();
+  });
 });

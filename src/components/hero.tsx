@@ -45,6 +45,7 @@ export function Hero() {
         }}
       >
         <motion.h1
+          aria-label="Roman Nguyen"
           variants={container}
           initial="hidden"
           animate={started ? "visible" : "hidden"}
