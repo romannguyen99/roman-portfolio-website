@@ -82,8 +82,8 @@ The full design specification lives in `references/design-note.mb`. Read it befo
 Follow this sequence — do not skip ahead:
 
 1. ✅ Global tokens + fonts + Lenis (done)
-2. ✅ Page loader — spec approved, **implement this next**. Full spec: `docs/superpowers/specs/2026-05-25-page-loader-design.md`
-3. Hero (SVG gradient first, upgrade to WebGL shader once layout works)
+2. ✅ Page loader. Full spec: `docs/superpowers/specs/2026-05-25-page-loader-design.md`
+3. ✅ Hero (SVG gradient — design-note Option B). Spec: `docs/superpowers/specs/2026-05-25-hero-design.md`. WebGL shader + scroll-grow deferred.
 4. Navigation (fixed, transparent over hero)
 5. Work grid section (placeholder content)
 6. Thoughts/blog section (placeholder content)
@@ -107,6 +107,18 @@ Full spec in `docs/superpowers/specs/2026-05-25-page-loader-design.md`. Key deci
 - **File:** `src/components/page-loader.tsx` (`"use client"`, Framer Motion for animations)
 - **Placement in layout.tsx:** `<PageLoader />` rendered above `<LenisProvider>` as a sibling
 - **Contract:** fires `new CustomEvent('loader:complete')` on `window` when done. Hero (step 3) listens for this event to start its entrance animation.
+
+## Hero — Implemented Summary
+
+Full spec in `docs/superpowers/specs/2026-05-25-hero-design.md`; plan in `docs/superpowers/plans/2026-05-25-hero.md`. As built:
+
+- **Headline:** `Roman Nguyen` — General Sans, `--text-display`, weight 500, split into two words that fade/slide up (opacity 0→1, y 24→0, 1200ms, ease-out-expo, 80ms stagger). `aria-label` on the `<h1>` gives a clean accessible name.
+- **Entrance trigger:** `useHeroEntrance()` (`src/hooks/use-hero-entrance.ts`) flips true on the loader's `loader:complete` event, or immediately if `loader-seen` is already set (returning visitor). Headline begins +600ms, scroll badge +1800ms after that signal.
+- **Background:** `src/components/gradient-orb.tsx` — SVG Option B (two radial gradients via `--color-accent` / `--color-accent-2`, warped by `feTurbulence`/`feDisplacementMap`, blurred; slow SMIL drift; frozen under `prefers-reduced-motion`). Isolated so the future WebGL shader is a one-file swap.
+- **Scroll badge:** `src/components/scroll-badge.tsx` — bottom-left rotating "SCROLL DOWN" ring + arrow; click calls `scrollToNext()`.
+- **Lenis access:** the global instance is registered in `src/lib/lenis.ts` (`getLenis`/`setLenis`/`scrollToNext`) by `<LenisProvider>`. Use this to drive programmatic scroll.
+- **Shared constants:** `LOADER_SEEN_KEY` in `src/lib/session-keys.ts`; `EASE_OUT_EXPO` in `src/lib/motion.ts` — import these, don't redeclare.
+- **Composition:** `src/components/hero.tsx` renders the orb, headline, and badge; `src/app/page.tsx` renders `<Hero />` (no section `id` — it's the page top).
 
 ## Anti-Patterns
 
