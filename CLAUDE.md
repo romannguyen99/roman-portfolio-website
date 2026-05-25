@@ -82,7 +82,7 @@ The full design specification lives in `references/design-note.mb`. Read it befo
 Follow this sequence — do not skip ahead:
 
 1. ✅ Global tokens + fonts + Lenis (done)
-2. Page loader
+2. ✅ Page loader — spec approved, **implement this next**. Full spec: `docs/superpowers/specs/2026-05-25-page-loader-design.md`
 3. Hero (SVG gradient first, upgrade to WebGL shader once layout works)
 4. Navigation (fixed, transparent over hero)
 5. Work grid section (placeholder content)
@@ -94,6 +94,19 @@ Follow this sequence — do not skip ahead:
 11. Page transitions between routes
 12. Custom cursor
 13. Mobile responsive pass
+
+## Page Loader — Approved Spec Summary
+
+Full spec in `docs/superpowers/specs/2026-05-25-page-loader-design.md`. Key decisions:
+
+- **Text:** `HOLD UP ...` — General Sans, 11px, `letter-spacing: 0.22em`, `text-transform: uppercase`
+- **Progress bar:** 200px × 1px, track `#2a2a2a`, fill `--color-fg`, below text with 20px gap
+- **Timer:** Fixed 1500ms fill — not tied to real load events
+- **Session:** Show once per session via `sessionStorage.getItem('loader-seen')`. If already set, skip and fire `loader:complete` immediately.
+- **Timing:** fade-in 200ms → bar fills 1500ms → fade-out 400ms → fire `loader:complete` event → unmount
+- **File:** `src/components/page-loader.tsx` (`"use client"`, Framer Motion for animations)
+- **Placement in layout.tsx:** `<PageLoader />` rendered above `<LenisProvider>` as a sibling
+- **Contract:** fires `new CustomEvent('loader:complete')` on `window` when done. Hero (step 3) listens for this event to start its entrance animation.
 
 ## Anti-Patterns
 
