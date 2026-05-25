@@ -1,0 +1,77 @@
+/* General Sans is hosted on Fontshare, not Google Fonts — next/font can't reach it without local files. */
+@import url("https://api.fontshare.com/v2/css?f[]=general-sans@200,300,400,500,600,700,1,2,3,4,5,6,7&display=swap");
+@import "tailwindcss";
+
+@theme inline {
+  /* Color tokens */
+  --color-bg: #0a0a0a;
+  --color-bg-alt: #141414;
+  --color-fg: #f5f1ea;
+  --color-fg-muted: #8a8680;
+  --color-fg-dim: #4a4742;
+  --color-accent: #d4a574;
+  --color-accent-2: #5c6b5e;
+
+  /* Fonts */
+  --font-sans: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Type scale (display sizes use clamp for fluid sizing) */
+  --text-display: clamp(4rem, 9vw, 9rem);
+  --text-h1: clamp(3rem, 6vw, 6rem);
+  --text-h2: clamp(2rem, 4vw, 3.5rem);
+  --text-h3: 1.5rem;
+  --text-body-lg: 1.25rem;
+  --text-body: 1rem;
+  --text-caption: 0.75rem;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --duration-fast: 300ms;
+  --duration-base: 600ms;
+  --duration-slow: 1000ms;
+  --duration-xslow: 1400ms;
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    overscroll-behavior: none;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+}
+
+/* Lenis smooth scroll — required wrappers per Lenis docs */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
