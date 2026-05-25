@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
+import { setLenis } from "@/lib/lenis";
 
 export function LenisProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -9,6 +10,7 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       lerp: 0.08,
       smoothWheel: true,
     });
+    setLenis(lenis);
 
     let rafId = 0;
     const raf = (time: number) => {
@@ -20,6 +22,7 @@ export function LenisProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      setLenis(null);
     };
   }, []);
 
