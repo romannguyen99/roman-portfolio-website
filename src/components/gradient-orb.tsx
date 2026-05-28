@@ -1,11 +1,12 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { GradientOrbFallback } from "@/components/gradient-orb-fallback";
 import { ShaderOrb } from "@/components/shader-orb";
 import { isWebGLAvailable } from "@/lib/webgl";
 
 const subscribe = () => () => {};
+const serverSnapshot = () => false;
 
 /**
  * Picks the orb renderer at runtime: WebGL shader when supported, static SVG
@@ -14,11 +15,14 @@ const subscribe = () => () => {};
  * which fades itself in.
  */
 export function GradientOrb() {
-  const useShader = useSyncExternalStore(
-    subscribe,
-    () => isWebGLAvailable(),
-    () => false,
-  );
+  // Probe WebGL once per mount and cache it: useSyncExternalStore calls the
+  // snapshot on every render, and the probe allocates a throwaway canvas.
+  const getSnapshot = useMemo(() => {
+    let cached: boolean | undefined;
+    return () => (cached ??= isWebGLAvailable());
+  }, []);
+
+  const useShader = useSyncExternalStore(subscribe, getSnapshot, serverSnapshot);
 
   return useShader ? <ShaderOrb /> : <GradientOrbFallback />;
 }

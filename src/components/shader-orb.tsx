@@ -105,10 +105,13 @@ export function ShaderOrb() {
       ro.disconnect();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
-      // Do not force-lose the context here: React re-runs this effect on the
-      // same canvas (StrictMode in dev, any remount in prod), and a lost
-      // context cannot be re-acquired from that canvas — the next init would
-      // get a dead context. Let the browser GC the context with the canvas.
+      // Release the GL context on a real unmount so contexts don't accumulate
+      // across route changes. Skipped in dev: React StrictMode re-runs this
+      // effect on the same canvas, and a lost context can't be re-acquired from
+      // it, so the second init would get a dead context.
+      if (process.env.NODE_ENV === "production") {
+        gl.getExtension("WEBGL_lose_context")?.loseContext();
+      }
     };
   }, []);
 
