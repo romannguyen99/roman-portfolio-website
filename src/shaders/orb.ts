@@ -68,11 +68,6 @@ export const ORB_FRAG = /* glsl */ `
     return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
   }
 
-  // IQ cosine palette for iridescence.
-  vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d){
-    return a + b * cos(6.28318 * (c * t + d));
-  }
-
   float hash(vec2 p){
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
   }
@@ -84,7 +79,7 @@ export const ORB_FRAG = /* glsl */ `
     vec2 p = (uv - vec2(0.45, 0.15)) / 1.15;
 
     float t = u_time * 0.05;
-    float scale = 1.6;
+    float scale = 1.1;
     float distSq = dot(p, p);
 
     // film grain (used in both branches)
@@ -103,35 +98,31 @@ export const ORB_FRAG = /* glsl */ `
 
     // perturb the surface normal with the noise field (undulating surface).
     float n1 = snoise(vec3(p * scale, t));
-    float n2 = snoise(vec3(p * scale * 2.0 + 10.0, t * 1.3));
-    vec3 nrm = normalize(normal + 0.35 * vec3(n1, n2, 0.0));
+    float n2 = snoise(vec3(p * scale * 1.7 + 10.0, t * 1.3));
+    vec3 nrm = normalize(normal + 0.28 * vec3(n1, n2, 0.0));
 
     // fresnel rim (glassy edge).
-    float fres = pow(1.0 - max(nrm.z, 0.0), 3.0);
+    float fres = pow(1.0 - max(nrm.z, 0.0), 2.5);
 
     // fixed key light, upper-right.
     vec3 lightDir = normalize(vec3(0.6, 0.7, 0.8));
     float diff = max(dot(nrm, lightDir), 0.0);
     float spec = pow(max(dot(reflect(-lightDir, nrm), vec3(0.0, 0.0, 1.0)), 0.0), 24.0);
 
-    // brand-tinted base, amber where noise is high, green where low.
-    vec3 brand = mix(u_accent2, u_accent, clamp(0.5 + 0.5 * n2, 0.0, 1.0));
-    vec3 color = mix(u_bg, brand, 0.4 + 0.6 * diff);
-    color = mix(color, brand, fres);             // rim takes the amber/brand tone
-    color += spec * u_accent * 0.6;              // specular highlight
+    // --- color: restrained amber/green oil-on-water over a dark core ---
+    float f1 = 0.5 + 0.5 * n1;
+    float f2 = 0.5 + 0.5 * n2;
+    vec3 pale = mix(u_accent, vec3(1.0), 0.4);                   // cream highlight
+    vec3 mat = mix(u_accent2, u_accent, smoothstep(0.3, 0.75, f1)); // green <-> amber bands
+    mat = mix(mat, pale, smoothstep(0.6, 0.95, f2) * 0.5);      // bright streaks
 
-    // subtle iridescence (oil-on-water).
-    vec3 irid = palette(0.5 + 0.5 * n1 + fres * 0.5,
-      vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.33, 0.67));
-    color = mix(color, color * irid * 1.6, 0.25);
-
-    // chromatic aberration near the rim.
-    float ca = fres * 0.04;
-    color.r += ca;
-    color.b -= ca;
+    // volume: dark core lifted toward the light; fresnel rim glows amber/cream.
+    vec3 color = mix(u_bg, mat, 0.22 + 0.6 * diff);
+    color = mix(color, mix(u_accent, pale, 0.5), fres * 0.6);
+    color += spec * pale * 0.35;
 
     // soft silhouette: fade into bg near the edge.
-    float edge = smoothstep(1.0, 0.75, distSq);
+    float edge = smoothstep(1.0, 0.7, distSq);
     color = mix(u_bg, color, edge);
 
     color += grain;
