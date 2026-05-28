@@ -83,7 +83,7 @@ Follow this sequence — do not skip ahead:
 
 1. ✅ Global tokens + fonts + Lenis (done)
 2. ✅ Page loader. Full spec: `docs/superpowers/specs/2026-05-25-page-loader-design.md`
-3. ✅ Hero (SVG gradient — design-note Option B). Spec: `docs/superpowers/specs/2026-05-25-hero-design.md`. WebGL shader + scroll-grow deferred.
+3. ✅ Hero. SVG spec: `docs/superpowers/specs/2026-05-25-hero-design.md`. WebGL shader (Option A) now implemented — spec `docs/superpowers/specs/2026-05-28-hero-shader-design.md`, plan `docs/superpowers/plans/2026-05-28-hero-shader.md`. Scroll-grow still deferred.
 4. Navigation (fixed, transparent over hero)
 5. Work grid section (placeholder content)
 6. Thoughts/blog section (placeholder content)
@@ -114,7 +114,7 @@ Full spec in `docs/superpowers/specs/2026-05-25-hero-design.md`; plan in `docs/s
 
 - **Headline:** `Roman Nguyen` — General Sans, `--text-display`, weight 500, split into two words that fade/slide up (opacity 0→1, y 24→0, 1200ms, ease-out-expo, 80ms stagger). `aria-label` on the `<h1>` gives a clean accessible name.
 - **Entrance trigger:** `useHeroEntrance()` (`src/hooks/use-hero-entrance.ts`) flips true on the loader's `loader:complete` event, or immediately if `loader-seen` is already set (returning visitor). Headline begins +600ms, scroll badge +1800ms after that signal.
-- **Background:** `src/components/gradient-orb.tsx` — SVG Option B (two radial gradients via `--color-accent` / `--color-accent-2`, warped by `feTurbulence`/`feDisplacementMap`, blurred; slow SMIL drift; frozen under `prefers-reduced-motion`). Isolated so the future WebGL shader is a one-file swap.
+- **Background:** `src/components/gradient-orb.tsx` is a runtime dispatcher (via `useSyncExternalStore` + `isWebGLAvailable()` in `src/lib/webgl.ts`): WebGL → `<ShaderOrb>` (`src/components/shader-orb.tsx`, an `ogl` fullscreen-triangle fragment shader in `src/shaders/orb.ts` — fake-3D sphere imposter, fresnel rim, amber/green oil-on-water bands, cinematic grain; slow `u_time` drift; one static frame under `prefers-reduced-motion`; rAF pauses offscreen/tab-hidden; fades in to avoid a black flash). No WebGL (incl. jsdom tests) → static SVG `<GradientOrbFallback>` (`src/components/gradient-orb-fallback.tsx`). Colors come from CSS tokens via `hexToRgb` (`src/lib/color.ts`). Scroll-grow (frame-01→03) is a framing change on this shader, still deferred.
 - **Scroll badge:** `src/components/scroll-badge.tsx` — bottom-left rotating "SCROLL DOWN" ring + arrow; click calls `scrollToNext()`.
 - **Lenis access:** the global instance is registered in `src/lib/lenis.ts` (`getLenis`/`setLenis`/`scrollToNext`) by `<LenisProvider>`. Use this to drive programmatic scroll.
 - **Shared constants:** `LOADER_SEEN_KEY` in `src/lib/session-keys.ts`; `EASE_OUT_EXPO` in `src/lib/motion.ts` — import these, don't redeclare.
