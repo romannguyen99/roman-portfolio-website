@@ -40,15 +40,22 @@ export function ShaderOrb() {
     });
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
 
+    // Size to the parent section. We measure the parent (not the canvas)
+    // because ogl's setSize writes explicit px into canvas.style, which would
+    // otherwise feed back into the next measurement and lock the size; we reset
+    // the canvas style to fill after each setSize.
+    const sizeTarget = canvas.parentElement ?? canvas;
     const resize = () => {
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      renderer.setSize(sizeTarget.clientWidth, sizeTarget.clientHeight);
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
       program.uniforms.u_resolution.value = [
         gl.drawingBufferWidth,
         gl.drawingBufferHeight,
       ];
     };
     const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
+    ro.observe(sizeTarget);
     resize();
 
     const startedAt = performance.now();
@@ -98,7 +105,10 @@ export function ShaderOrb() {
       ro.disconnect();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      // Do not force-lose the context here: React re-runs this effect on the
+      // same canvas (StrictMode in dev, any remount in prod), and a lost
+      // context cannot be re-acquired from that canvas — the next init would
+      // get a dead context. Let the browser GC the context with the canvas.
     };
   }, []);
 
