@@ -42,3 +42,10 @@ next-env.d.ts
 
 # brainstorming sessions
 .superpowers/
+
+# test cache
+.vitest-cache/
+
+# local agent / MCP scratch dirs
+.playwright-mcp/
+.claude/

@@ -1,0 +1,11 @@
+.next
+out
+build
+coverage
+node_modules
+package-lock.json
+public
+references/screenshots
+references/recording.mp4
+.playwright-mcp
+.claude
