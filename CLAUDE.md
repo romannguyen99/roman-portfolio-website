@@ -10,11 +10,13 @@ Roman Nguyen's personal portfolio. A single-page, scroll-driven site.
 
 **Design source of truth:** [references/screenshots/](references/screenshots/) — `hero-frame-01.png` through `hero-frame-11.png` are the canonical hero reference. Match their aesthetic, not pixel-for-pixel layout. When proposing visual changes, cite specific frames.
 
+**Design rationale:** [references/design-note.mb](references/design-note.mb) — written design notes (palette, type scale, motion language, section-by-section observations from monopo.vn). Read this when starting a visual step.
+
 ## 2. Tech stack
 
 - **Framework:** Next.js 16 (App Router) + React 19
 - **Language:** TypeScript, `strict: true`
-- **Styling:** Tailwind CSS v4 — palette and type scale centralized in `tailwind.config.ts`
+- **Styling:** Tailwind CSS v4 — palette and type scale centralized in the `@theme` block of `src/app/globals.css` (Tailwind v4 dropped the JS `tailwind.config.ts` in favor of CSS-first config)
 - **Motion:** [Lenis](https://lenis.darkroom.engineering/) smooth scroll + [GSAP](https://gsap.com/) + ScrollTrigger
 - **Hero orb:** custom WebGL fragment shader, mounted in a `<canvas>`, with a CSS gradient fallback for `prefers-reduced-motion` and WebGL-unavailable contexts
 - **Content:** MDX files in `content/projects/` and `content/blog/`, typed frontmatter parsed at build time
