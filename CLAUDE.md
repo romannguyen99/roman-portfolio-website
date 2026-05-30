@@ -71,36 +71,43 @@ Sequential. Each step is one brainstorm → spec → plan → subagent-exec → 
 ## 6. Conventions
 
 **Discipline**
+
 - **TDD for non-visual logic** (MDX loader, hooks, utilities). Write the test first.
 - **In-browser verification for any visual change.** Type checking and tests do not prove a shader, animation, or layout looks right. Open it in the browser before claiming done.
 - **Verification before completion.** Run the command, look at the output, then assert success. Never claim "tests pass" without running them.
 
 **Accessibility (non-negotiable baseline)**
+
 - `prefers-reduced-motion`: orb falls back to a static gradient; GSAP/ScrollTrigger animations short-circuit to instant state
 - Keyboard nav reaches every interactive element; visible focus rings
 - Color contrast meets WCAG AA for body text
 - Section landmarks (`<section>` + `aria-labelledby`), single `<h1>` on the hero
 
 **Performance**
+
 - Hero shader releases the WebGL context on unmount (the prior `ShaderOrb` work established this pattern — preserve it)
 - Images via `next/image` with explicit dimensions
 - No layout shift on font load (use `next/font` with `display: swap` or self-hosted with `size-adjust`)
 
 **Design fidelity**
+
 - After any significant visual change (new component, layout shift, motion tweak), take a Playwright screenshot and compare side-by-side with the closest reference frame in `references/screenshots/`. Do not mark a visual step done without this comparison.
 - The reference frames are the aesthetic bar, not a pixel-perfect target — match the mood, palette, and spatial relationships.
 
 **Responsive / mobile**
+
 - Every component must be designed mobile-first. Breakpoints: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px).
 - Test at 375px (iPhone SE), 768px (tablet), 1440px (desktop) before marking any section done.
 - Touch targets ≥ 44×44px. No horizontal overflow at any breakpoint.
 
 **Scroll animation — required for every section**
+
 - Every section (`#work`, `#journal`, `#about`, `#contact`) must have a scroll-triggered reveal animation using GSAP ScrollTrigger.
 - Minimum: elements fade + translate-up into view as the section enters the viewport. Richer animations (stagger, clip-path, parallax) encouraged where they match the cinematic intent.
 - All scroll animations must short-circuit to instant final state when `prefers-reduced-motion` is active.
 
 **Code style**
+
 - Functional components, hooks, no class components
 - Co-locate component + test + styles in the same folder when more than one file
 - Tailwind for layout/styling; only drop to CSS modules for true exceptions (e.g., shader canvas sizing)
@@ -109,6 +116,7 @@ Sequential. Each step is one brainstorm → spec → plan → subagent-exec → 
 ## 7. Workflow & commands
 
 **Commands**
+
 ```bash
 npm run dev      # next dev (http://localhost:3000)
 npm run build    # production build
@@ -120,6 +128,7 @@ npm run typecheck
 ```
 
 **Loop per build-order step**
+
 1. `superpowers:brainstorming` — confirm intent, present design
 2. Write spec → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
 3. `superpowers:writing-plans` — implementation plan → `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
@@ -130,6 +139,7 @@ npm run typecheck
 8. Tick the step in §5
 
 **Git**
+
 - Work happens on `main`. No feature branches, no worktrees for normal steps.
 - Conventional-commit-ish style (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
 - Push to `origin/main` after each step lands and is verified.

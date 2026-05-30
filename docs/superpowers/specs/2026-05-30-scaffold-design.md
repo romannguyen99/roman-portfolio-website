@@ -88,6 +88,7 @@ Each is a server component returning:
 ```
 
 Where:
+
 - `slug` ∈ {`hero`, `work`, `journal`, `about`, `contact`}
 - For Hero, `Heading` is `<h1>`. For Work, Journal, About, Contact, `Heading` is `<h2>`. This honors CLAUDE.md's "single `<h1>` on the hero" rule.
 - Visible text is the section's capitalized name (e.g. `"Hero"`, `"Work"`). No Tailwind classes beyond what's needed to make the placeholders visible (none required — body text inherits white-on-black).
@@ -97,6 +98,7 @@ No props. No state. No motion. No styling beyond defaults.
 ### Section tests (`src/sections/<name>/index.test.tsx`)
 
 Each test renders the component and asserts:
+
 1. There is a `<section>` element with `id="<slug>"`.
 2. The section has an accessible name matching the section label (via `aria-labelledby`).
 3. The heading text is correct.
@@ -109,14 +111,14 @@ Tests use `@testing-library/react` `render` + `screen.getByRole("region", { name
 
 ```json
 {
-  "dev":          "next dev",
-  "build":        "next build",
-  "start":        "next start",
-  "lint":         "eslint",
-  "typecheck":    "tsc --noEmit",
-  "test":         "vitest run",
-  "test:watch":   "vitest",
-  "format":       "prettier --write .",
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint",
+  "typecheck": "tsc --noEmit",
+  "test": "vitest run",
+  "test:watch": "vitest",
+  "format": "prettier --write .",
   "format:check": "prettier --check ."
 }
 ```
@@ -124,11 +126,13 @@ Tests use `@testing-library/react` `render` + `screen.getByRole("region", { name
 ### `package.json` dependencies
 
 **dependencies:**
+
 - `next` ^16
 - `react` ^19
 - `react-dom` ^19
 
 **devDependencies:**
+
 - `typescript` ^5
 - `@types/node` ^20
 - `@types/react` ^19
@@ -283,6 +287,7 @@ All must pass before commit:
 ## 10. Acceptance
 
 Step 1 is done when:
+
 - All seven verification items above pass.
 - One commit on `main` lands the scaffold with the message style `chore: scaffold Next.js 16 + Tailwind v4 + Vitest + Prettier (step 1)`.
 - `git push origin main` succeeds.
