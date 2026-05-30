@@ -1,132 +1,143 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Always-loaded instructions for this repository. Keep tight; this file is read at the start of every session.
 
-## Important: Next.js Version
+## 1. Project identity
 
-This project runs **Next.js 16.2.6**, which may have breaking changes from your training data. Before writing any Next.js-specific code (routing, server components, metadata, caching), read the relevant guide in `node_modules/next/dist/docs/`. Heed any deprecation notices.
+Roman Nguyen's personal portfolio. A single-page, scroll-driven site.
 
-## Commands
+**Design intent:** modern, cinematic, professional. Dark palette, an iridescent oil-slick orb that anchors the hero, a multilingual tagline that cycles, a minimal top-right nav that anchors to each scrolled section.
 
+**Design source of truth:** [references/screenshots/](references/screenshots/) — `hero-frame-01.png` through `hero-frame-11.png` are the canonical hero reference. Match their aesthetic, not pixel-for-pixel layout. When proposing visual changes, cite specific frames.
+
+## 2. Tech stack
+
+- **Framework:** Next.js 15 (App Router) + React 19
+- **Language:** TypeScript, `strict: true`
+- **Styling:** Tailwind CSS v4 — palette and type scale centralized in `tailwind.config.ts`
+- **Motion:** [Lenis](https://lenis.darkroom.engineering/) smooth scroll + [GSAP](https://gsap.com/) + ScrollTrigger
+- **Hero orb:** custom WebGL fragment shader, mounted in a `<canvas>`, with a CSS gradient fallback for `prefers-reduced-motion` and WebGL-unavailable contexts
+- **Content:** MDX files in `content/projects/` and `content/blog/`, typed frontmatter parsed at build time
+- **Tests:** Vitest + @testing-library/react + jsdom
+- **Lint/format:** ESLint (Next config) + Prettier
+- **Deploy:** Vercel (preview URL per push, production on `main`)
+
+## 3. Information architecture
+
+One page, five vertical sections in order:
+
+1. **Hero** — `#hero` — orb + rotating tagline + top nav
+2. **Work** — `#work` — grid of project cards, click-through to MDX project pages
+3. **Journal** — `#journal` — list of blog posts, click-through to MDX post pages
+4. **About** — `#about` — bio, photo, capabilities
+5. **Contact** — `#contact` — email, socials, optional form
+
+The nav in the hero links to these IDs. Section IDs are the source of truth — change them here and in the nav together.
+
+## 4. File structure
+
+```
+src/
+  app/                  # Next.js App Router (layout, page, project/post routes)
+  sections/             # Hero, Work, Journal, About, Contact — one folder each
+  components/           # Reusable UI (nav, project-card, post-card, scroll-badge…)
+  hooks/                # use-lenis, use-hero-entrance, use-reduced-motion…
+  lib/                  # mdx loader, color tokens, motion helpers, env
+  shaders/              # .glsl sources + TS bindings for the hero orb
+content/
+  projects/*.mdx        # frontmatter: title, summary, cover, year, role, tags, links
+  blog/*.mdx            # frontmatter: title, summary, date, tags
+references/screenshots/ # design source of truth (do not delete)
+docs/superpowers/
+  specs/                # per-step design docs (brainstorm output)
+  plans/                # per-step implementation plans (writing-plans output)
+```
+
+## 5. Build order
+
+Sequential. Each step is one brainstorm → spec → plan → subagent-exec → verify → commit loop. Tick off in this file as steps land.
+
+- [ ] **1. Scaffold** — Next.js 15 + TS + Tailwind v4 + Vitest + ESLint/Prettier; empty section stubs; CI-free local-only baseline
+- [ ] **2. Design tokens & typography** — palette (deep green/black + oil-slick accents), type scale, spacing scale, fonts (display + body), global CSS reset
+- [ ] **3. Hero orb shader** — WebGL fragment shader; iridescent oil-slick palette; sphere-projected UVs + fresnel; cinematic grain; CSS-gradient fallback; reduced-motion path
+- [ ] **4. Hero entrance + nav** — orb mount-in, tagline cycle (English + Vietnamese), top-right nav anchors, scroll-down badge
+- [ ] **5. Smooth scroll + section scaffolding** — Lenis provider, GSAP ScrollTrigger setup, empty section frames with anchor IDs
+- [ ] **6. Work grid** — MDX project loader, card layout, hover/reveal motion, project detail route
+- [ ] **7. Journal list** — MDX blog loader, list layout, post detail route, reading metadata
+- [ ] **8. About section** — bio, photo treatment, capabilities, scroll-linked reveal
+- [ ] **9. Contact section** — email + socials, optional form (with spam protection if added)
+- [ ] **10. Polish + SEO + deploy** — OG images, sitemap, robots, metadata, Lighthouse pass, Vercel production deploy
+
+## 6. Conventions
+
+**Discipline**
+- **TDD for non-visual logic** (MDX loader, hooks, utilities). Write the test first.
+- **In-browser verification for any visual change.** Type checking and tests do not prove a shader, animation, or layout looks right. Open it in the browser before claiming done.
+- **Verification before completion.** Run the command, look at the output, then assert success. Never claim "tests pass" without running them.
+
+**Accessibility (non-negotiable baseline)**
+- `prefers-reduced-motion`: orb falls back to a static gradient; GSAP/ScrollTrigger animations short-circuit to instant state
+- Keyboard nav reaches every interactive element; visible focus rings
+- Color contrast meets WCAG AA for body text
+- Section landmarks (`<section>` + `aria-labelledby`), single `<h1>` on the hero
+
+**Performance**
+- Hero shader releases the WebGL context on unmount (the prior `ShaderOrb` work established this pattern — preserve it)
+- Images via `next/image` with explicit dimensions
+- No layout shift on font load (use `next/font` with `display: swap` or self-hosted with `size-adjust`)
+
+**Design fidelity**
+- After any significant visual change (new component, layout shift, motion tweak), take a Playwright screenshot and compare side-by-side with the closest reference frame in `references/screenshots/`. Do not mark a visual step done without this comparison.
+- The reference frames are the aesthetic bar, not a pixel-perfect target — match the mood, palette, and spatial relationships.
+
+**Responsive / mobile**
+- Every component must be designed mobile-first. Breakpoints: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px).
+- Test at 375px (iPhone SE), 768px (tablet), 1440px (desktop) before marking any section done.
+- Touch targets ≥ 44×44px. No horizontal overflow at any breakpoint.
+
+**Scroll animation — required for every section**
+- Every section (`#work`, `#journal`, `#about`, `#contact`) must have a scroll-triggered reveal animation using GSAP ScrollTrigger.
+- Minimum: elements fade + translate-up into view as the section enters the viewport. Richer animations (stagger, clip-path, parallax) encouraged where they match the cinematic intent.
+- All scroll animations must short-circuit to instant final state when `prefers-reduced-motion` is active.
+
+**Code style**
+- Functional components, hooks, no class components
+- Co-locate component + test + styles in the same folder when more than one file
+- Tailwind for layout/styling; only drop to CSS modules for true exceptions (e.g., shader canvas sizing)
+- No comments that restate the code. Comments explain the **why** for non-obvious decisions only.
+
+## 7. Workflow & commands
+
+**Commands**
 ```bash
-npm run dev      # Start dev server (Turbopack)
-npm run build    # Production build
-npm run start    # Serve production build
-npm run lint     # ESLint
+npm run dev      # next dev (http://localhost:3000)
+npm run build    # production build
+npm run start    # serve production build
+npm run test     # vitest, single run
+npm run test:watch
+npm run lint
+npm run typecheck
 ```
 
-No test suite is configured yet.
+**Loop per build-order step**
+1. `superpowers:brainstorming` — confirm intent, present design
+2. Write spec → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+3. `superpowers:writing-plans` — implementation plan → `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
+4. `superpowers:subagent-driven-development` — execute with TDD + two-stage review
+5. Browser verification (any visual change) + Playwright screenshot vs. reference frame comparison
+6. `superpowers:verification-before-completion` before claiming done
+7. Commit on `main`, push to `origin/main`
+8. Tick the step in §5
 
-## What This Site Is
+**Git**
+- Work happens on `main`. No feature branches, no worktrees for normal steps.
+- Conventional-commit-ish style (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+- Push to `origin/main` after each step lands and is verified.
 
-Roman Nguyen's personal portfolio — data science side projects and blog posts, styled after the monopo.vn creative studio aesthetic. 
+## 8. Out of scope (for now)
 
-**Page structure:**
-- `/` — Single-page home with four scroll-anchored sections: **Work**, **Thoughts**, **About**, **Contact**. Nav links are in-page anchors, not routes.
-- `/work/[slug]` — Individual project case study page
-- `/thoughts/[slug]` — Individual blog post page
-
-## Tech Stack
-
-| Concern | Library |
-|---|---|
-| Framework | Next.js 16 App Router + TypeScript |
-| Styling | Tailwind CSS v4 (`@theme inline` in `globals.css` — no `tailwind.config.js`) |
-| UI animation | Framer Motion 12 |
-| Scroll animation | GSAP 3 + ScrollTrigger |
-| Smooth scroll | Lenis 1.3 (lerp 0.08, initialized in `src/components/lenis-provider.tsx`) |
-| Fonts | General Sans via Fontshare CDN (in `globals.css`), JetBrains Mono via `next/font/google` |
-
-**Tailwind v4 note:** All custom tokens live in the `@theme inline` block in `src/app/globals.css`. There is no separate config file. Add new tokens there, not in `tailwind.config.js`.
-
-**Fonts note:** General Sans cannot be loaded via `next/font` (it's on Fontshare, not Google). It is imported with a plain CSS `@import url(...)` at the top of `globals.css`. JetBrains Mono is loaded via `next/font/google` in `layout.tsx` and exposed as `--font-jetbrains-mono`.
-
-## Design System
-
-The full design specification lives in `references/design-note.mb`. Read it before touching any visual code. The screenshots in `references/screenshots/` are the visual reference. Key decisions locked in:
-
-**Color tokens** (defined in `globals.css`):
-```
---color-bg        #0a0a0a   page background
---color-bg-alt    #141414   secondary surface
---color-fg        #f5f1ea   warm off-white, primary text
---color-fg-muted  #8a8680   captions, nav links, secondary
---color-fg-dim    #4a4742   dividers, disabled
---color-accent    #d4a574   amber/gold — hero gradient, hover fills
---color-accent-2  #5c6b5e   desaturated green — secondary gradient tone
-```
-
-**Motion tokens** (defined in `globals.css`):
-```
---ease-out-expo   cubic-bezier(0.22, 1, 0.36, 1)   default for all transitions
---ease-in-out     cubic-bezier(0.65, 0, 0.35, 1)   state changes
---duration-fast   300ms    button hovers, tooltips
---duration-base   600ms    most transitions
---duration-slow   1000ms   section reveals, hero entrance
---duration-xslow  1400ms   loader, page transitions
-```
-
-**Type scale** (also in `globals.css`):
-- `--text-display`: `clamp(4rem, 9vw, 9rem)` — hero headline
-- `--text-h1` through `--text-caption` — see `globals.css`
-
-## Architecture Patterns
-
-- **Lenis:** Initialized once in `<LenisProvider>` (client component) which wraps the entire app in `layout.tsx`. Any component that needs to pause or restart smooth scroll should interact with the global Lenis instance.
-- **Scroll animations:** Use GSAP ScrollTrigger for scroll-linked reveals (not Framer Motion's `whileInView`) to stay consistent with the Lenis integration. Framer Motion handles load-time and hover animations.
-- **`"use client"` boundary:** Keep as high as necessary. Server components are preferred for static sections; client components only where animation, state, or browser APIs are needed.
-- **Section IDs:** Home page sections must have IDs matching nav anchors: `#work`, `#thoughts`, `#about`, `#contact`.
-
-## Build Order
-
-Follow this sequence — do not skip ahead:
-
-1. ✅ Global tokens + fonts + Lenis (done)
-2. ✅ Page loader. Full spec: `docs/superpowers/specs/2026-05-25-page-loader-design.md`
-3. ✅ Hero. SVG spec: `docs/superpowers/specs/2026-05-25-hero-design.md`. WebGL shader (Option A) now implemented — spec `docs/superpowers/specs/2026-05-28-hero-shader-design.md`, plan `docs/superpowers/plans/2026-05-28-hero-shader.md`. Scroll-grow still deferred.
-4. Navigation (fixed, transparent over hero)
-5. Work grid section (placeholder content)
-6. Thoughts/blog section (placeholder content)
-7. About section
-8. Contact section
-9. `/work/[slug]` case study page template
-10. `/thoughts/[slug]` blog post page template
-11. Page transitions between routes
-12. Custom cursor
-13. Mobile responsive pass
-
-## Page Loader — Approved Spec Summary
-
-Full spec in `docs/superpowers/specs/2026-05-25-page-loader-design.md`. Key decisions:
-
-- **Text:** `HOLD UP ...` — General Sans, 11px, `letter-spacing: 0.22em`, `text-transform: uppercase`
-- **Progress bar:** 200px × 1px, track `#2a2a2a`, fill `--color-fg`, below text with 20px gap
-- **Timer:** Fixed 1500ms fill — not tied to real load events
-- **Session:** Show once per session via `sessionStorage.getItem('loader-seen')`. If already set, skip and fire `loader:complete` immediately.
-- **Timing:** fade-in 200ms → bar fills 1500ms → fade-out 400ms → fire `loader:complete` event → unmount
-- **File:** `src/components/page-loader.tsx` (`"use client"`, Framer Motion for animations)
-- **Placement in layout.tsx:** `<PageLoader />` rendered above `<LenisProvider>` as a sibling
-- **Contract:** fires `new CustomEvent('loader:complete')` on `window` when done. Hero (step 3) listens for this event to start its entrance animation.
-
-## Hero — Implemented Summary
-
-Full spec in `docs/superpowers/specs/2026-05-25-hero-design.md`; plan in `docs/superpowers/plans/2026-05-25-hero.md`. As built:
-
-- **Headline:** `Roman Nguyen` — General Sans, `--text-display`, weight 500, split into two words that fade/slide up (opacity 0→1, y 24→0, 1200ms, ease-out-expo, 80ms stagger). `aria-label` on the `<h1>` gives a clean accessible name.
-- **Entrance trigger:** `useHeroEntrance()` (`src/hooks/use-hero-entrance.ts`) flips true on the loader's `loader:complete` event, or immediately if `loader-seen` is already set (returning visitor). Headline begins +600ms, scroll badge +1800ms after that signal.
-- **Background:** `src/components/gradient-orb.tsx` is a runtime dispatcher (via `useSyncExternalStore` + `isWebGLAvailable()` in `src/lib/webgl.ts`): WebGL → `<ShaderOrb>` (`src/components/shader-orb.tsx`, an `ogl` fullscreen-triangle fragment shader in `src/shaders/orb.ts` — fake-3D sphere imposter, fresnel rim, amber/green oil-on-water bands, cinematic grain; slow `u_time` drift; one static frame under `prefers-reduced-motion`; rAF pauses offscreen/tab-hidden; fades in to avoid a black flash). No WebGL (incl. jsdom tests) → static SVG `<GradientOrbFallback>` (`src/components/gradient-orb-fallback.tsx`). Colors come from CSS tokens via `hexToRgb` (`src/lib/color.ts`). Scroll-grow (frame-01→03) is a framing change on this shader, still deferred.
-- **Scroll badge:** `src/components/scroll-badge.tsx` — bottom-left rotating "SCROLL DOWN" ring + arrow; click calls `scrollToNext()`.
-- **Lenis access:** the global instance is registered in `src/lib/lenis.ts` (`getLenis`/`setLenis`/`scrollToNext`) by `<LenisProvider>`. Use this to drive programmatic scroll.
-- **Shared constants:** `LOADER_SEEN_KEY` in `src/lib/session-keys.ts`; `EASE_OUT_EXPO` in `src/lib/motion.ts` — import these, don't redeclare.
-- **Composition:** `src/components/hero.tsx` renders the orb, headline, and badge; `src/app/page.tsx` renders `<Hero />` (no section `id` — it's the page top).
-
-## Anti-Patterns
-
-Per `references/design-note.mb` — never do these:
-- Bright colors outside the amber/green palette
-- Animations under 300ms for non-trivial elements
-- Bouncy easing (spring with high stiffness, `easeInOutBack`)
-- Uniform grid layouts for the Work section
-- Drop shadows on text
-- Light-mode toggle
-- Full-screen hamburger menu on mobile
+- i18n routing — the rotating Vietnamese/English tagline is presentational, not a routed locale
+- Headless CMS — content lives in MDX in this repo
+- Auth, comments, user accounts
+- Analytics beyond a single privacy-respecting tracker (decide at step 10)
+- E2E tests — Vitest unit/component coverage only until the site is feature-complete
