@@ -27,8 +27,8 @@
 
 | Path | Action | Responsibility |
 |------|--------|----------------|
-| `src/lib/fonts.ts` | Create | Single source for `next/font` instances (`plusJakarta`, `jetbrainsMono`). Exports CSS-variable class names for layout to attach. |
-| `src/app/layout.tsx` | Modify | Attach `plusJakarta.variable` + `jetbrainsMono.variable` to `<html>` className so CSS vars resolve site-wide. |
+| `src/lib/fonts.ts` | Create | Single source for `next/font` instances (`plusJakartaSans`, `jetbrainsMono`). Exports CSS-variable class names for layout to attach. |
+| `src/app/layout.tsx` | Modify | Attach `plusJakartaSans.variable` + `jetbrainsMono.variable` to `<html>` className so CSS vars resolve site-wide. |
 | `src/app/globals.css` | Rewrite | Full `@theme` block (colors, fonts, type scale, spacing, motion) + `@layer base` reset (color-scheme, body defaults, focus, reduced-motion). |
 | `src/app/specimen/page.tsx` | Create | Dev-only server component. Renders six sections: color swatches, type ladder (bilingual sample), italic+roman mix, spacing scale, easing previews, mono sample. |
 | `src/app/specimen/easing-previews.tsx` | Create | Small client component used inside `/specimen`. Four hover-triggered translate-x previews, one per easing token. |
@@ -52,21 +52,32 @@ Create `src/lib/fonts.ts`:
 ```ts
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 
-export const plusJakarta = Plus_Jakarta_Sans({
+/**
+ * Display + body face. Attach `plusJakartaSans.variable` to `<html>` className
+ * so `--font-plus-jakarta` resolves site-wide (consumed by `--font-display`).
+ */
+export const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600"],
+  weight: "variable",
   style: ["normal", "italic"],
   display: "swap",
   variable: "--font-plus-jakarta",
 });
 
+/**
+ * Mono face for captions, code, metadata. Normal-only on purpose — italic
+ * mono would only matter inside code blocks, and we don't render italic
+ * inside them anywhere. Add `style: ["normal", "italic"]` if that changes.
+ */
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "variable",
   display: "swap",
   variable: "--font-jetbrains",
 });
 ```
+
+Note: `weight: "variable"` ships a single woff2 covering the whole weight axis instead of separate static files — roughly half the font payload.
 
 - [ ] **Step 2: Verify type check passes**
 
@@ -93,7 +104,7 @@ Replace the contents of `src/app/layout.tsx` with:
 
 ```tsx
 import type { Metadata } from "next";
-import { plusJakarta, jetbrainsMono } from "@/lib/fonts";
+import { plusJakartaSans, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -109,7 +120,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${jetbrainsMono.variable} antialiased`}
+      className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} antialiased`}
     >
       <body>{children}</body>
     </html>
