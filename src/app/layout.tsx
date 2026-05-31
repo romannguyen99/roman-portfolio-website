@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { plusJakartaSans, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="antialiased">
+    <html
+      lang="en"
+      className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} antialiased`}
+    >
       <body>{children}</body>
     </html>
   );
