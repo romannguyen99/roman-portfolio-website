@@ -18,7 +18,7 @@ export const plusJakartaSans = Plus_Jakarta_Sans({
  * inside them anywhere. Add `style: ["normal", "italic"]` if that changes.
  */
 export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
   weight: "variable",
   display: "swap",
   variable: "--font-jetbrains",
