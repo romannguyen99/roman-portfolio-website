@@ -25,14 +25,15 @@ Land the hero's anchoring visual: an iridescent, slowly-drifting oil-on-water or
 4. **Material: custom `<shaderMaterial>` with hand-written GLSL.** drei's `<MeshDistortMaterial>` and `<MeshWobbleMaterial>` cannot produce iridescent oil bands; we need our own fragment shader. We bring in the prior shader's algorithm (lifted from `1274fd6`, lightly adapted) for the color pipeline.
 5. **Lighting hybrid.** A real `<directionalLight>` is in the scene to act as the source of truth for key-light direction (so step 5 can tween it from React). The fragment shader still does its own Lambert + fresnel using the light direction as a uniform — Three's stock lighting can't produce the look.
 6. **Fallback: SVG + radial gradients, frozen.** Direct port of the prior `gradient-orb-fallback.tsx`. Served on the server (always), under jsdom (always), and when WebGL is unavailable on the client.
-7. **No shader unit tests.** GLSL renders are validated visually via Playwright screenshots against `references/screenshots/hero-frame-*`. Unit tests cover pure functions and React surfaces only.
+7. **Crossfade the hydration swap.** When the client detects WebGL and mounts the canvas, the SVG fallback stays in the DOM underneath. The canvas fades in from `opacity: 0` to `1` over 300 ms once it has painted its first frame; the SVG stays at `opacity: 1` and is occluded by the opaque canvas. We do **not** unmount the SVG — keeping it mounted means a WebGL context loss / recovery causes no flash. This costs ~1 KB of inactive DOM and removes any chance of catching the exact frame where the renderer changes.
+8. **No shader unit tests.** GLSL renders are validated visually via Playwright screenshots against `references/screenshots/hero-frame-*`. Unit tests cover pure functions and React surfaces only.
 
 ## Files
 
 | Path | Action | Responsibility |
 |------|--------|----------------|
 | `src/sections/hero/index.tsx` | Modify | Replace `<h1>` stub with `<OrbStage />` mounted full-bleed inside the hero section. |
-| `src/components/orb-stage.tsx` | Create | Client dispatcher. Detects WebGL; renders `<OrbCanvas />` (WebGL) or `<OrbFallback />` (no WebGL or SSR). |
+| `src/components/orb-stage.tsx` | Create | Client dispatcher. Always renders `<OrbFallback />` underneath. On WebGL-capable clients, additionally renders `<OrbCanvas />` overlaid on top, fading from opacity 0 to 1 over 300 ms once it has painted its first frame. |
 | `src/components/orb-canvas.tsx` | Create | R3F `<Canvas>` host. Sets up perspective camera + directional light. Owns the `running` boolean (IntersectionObserver + visibilitychange + reduced-motion). Passes `running` into `<Orb />`. |
 | `src/components/orb.tsx` | Create | The actual `<mesh>`: icosahedronGeometry + custom shaderMaterial bound to `u_time`, `u_resolution`, `u_bg`, `u_accent`, `u_accent2`, `u_lightDir`. `useFrame` advances `u_time` and calls `invalidate()`. |
 | `src/components/orb-fallback.tsx` | Create | Static SVG, no SMIL. Ported from prior `gradient-orb-fallback.tsx` (see `git show 1274fd6:src/components/gradient-orb-fallback.tsx`). |
@@ -56,7 +57,7 @@ The prior files at commit `1274fd6` are not re-checked-out; they're treated as r
 
 ```tsx
 "use client";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 const subscribe = () => () => {};
 
@@ -66,11 +67,25 @@ export function OrbStage() {
     () => isWebGLAvailable(),
     () => false,
   );
-  return useShader ? <OrbCanvas /> : <OrbFallback />;
+  const [canvasReady, setCanvasReady] = useState(false);
+
+  return (
+    <div className="absolute inset-0">
+      <OrbFallback /> {/* always mounted, always opacity 1, sits underneath */}
+      {useShader ? (
+        <div
+          className="absolute inset-0 transition-opacity duration-300"
+          style={{ opacity: canvasReady ? 1 : 0 }}
+        >
+          <OrbCanvas onFirstFrame={() => setCanvasReady(true)} />
+        </div>
+      ) : null}
+    </div>
+  );
 }
 ```
 
-Same SSR-safe pattern as the prior `GradientOrb`. Server snapshot is always the fallback, so hydration matches. Client mount: detect WebGL, swap.
+Server snapshot is always just the fallback. On the client, `useSyncExternalStore` returns `true` once WebGL is detected; the canvas overlay mounts at `opacity: 0`, and `<OrbCanvas>` calls `onFirstFrame` after its `useFrame` runs once. The 300 ms opacity transition then hides the exact moment the renderer changes — the eye sees a continuous oil-on-water surface, no flash. The fallback stays mounted forever so a future WebGL context loss/recovery cycle also has nothing to flash to.
 
 ### Canvas host (`orb-canvas.tsx`)
 
@@ -243,7 +258,8 @@ ${SNOISE_3D}
 | Tab hidden pause | `document.visibilitychange` listener → `running` state |
 | Reduced motion | `useReducedMotion()` → `running` is gated false; one initial frame still renders (so the SVG-like static look appears) |
 | WebGL detection | `useSyncExternalStore` in dispatcher, server snapshot always false |
-| Context loss | Three's renderer handles `webglcontextlost` / `webglcontextrestored` internally; we do not call `forceContextLoss` (same lesson as the prior implementation) |
+| Hydration swap | SVG fallback stays mounted; canvas overlays at `opacity: 0` and fades to 1 over 300 ms after `<Orb>`'s first `useFrame` fires (via `onFirstFrame` callback) |
+| Context loss | Three's renderer handles `webglcontextlost` / `webglcontextrestored` internally; we do not call `forceContextLoss` (same lesson as the prior implementation). Because the SVG fallback never unmounts, a lost context is visually invisible — the SVG is just there underneath |
 | Cleanup | R3F handles renderer disposal on `<Canvas>` unmount |
 
 ### Uniforms wiring
@@ -262,12 +278,12 @@ On `<Orb>` mount, read CSS tokens via `getComputedStyle(document.documentElement
 
 | Client | What renders |
 |---|---|
-| SSR | `<OrbFallback />` (SVG, frozen) |
-| Client, no WebGL | `<OrbFallback />` |
-| Client, WebGL, reduced motion | `<OrbCanvas />`, one frame at `u_time = 0`, no further invalidation |
-| Client, WebGL, no reduced motion | `<OrbCanvas />`, continuous drift while in-view + tab-visible |
+| SSR | `<OrbFallback />` (SVG, frozen) — visible. |
+| Client, no WebGL | `<OrbFallback />` — visible. No canvas overlay mounts. |
+| Client, WebGL, reduced motion | `<OrbFallback />` underneath + `<OrbCanvas />` overlay, canvas renders one frame at `u_time = 0` then never again; canvas fades in over 300 ms (same crossfade path), then stays at opacity 1. |
+| Client, WebGL, no reduced motion | `<OrbFallback />` underneath + `<OrbCanvas />` overlay, canvas drifts continuously while in-view + tab-visible; canvas fades in over 300 ms after first frame. |
 
-The single-frame-then-freeze path means reduced-motion users still see the *richer* shader frame, not the SVG. This matches the prior implementation's choice and the spec note in CLAUDE.md §6 (reduced-motion → static gradient state, not necessarily the SVG fallback).
+The single-frame-then-freeze path means reduced-motion users still see the *richer* shader frame, not the SVG. This matches the prior implementation's choice and the spec note in CLAUDE.md §6 (reduced-motion → static gradient state, not necessarily the SVG fallback). The SVG fallback is always mounted as the underlay; the canvas is the overlay layer.
 
 ## Testing
 
@@ -299,6 +315,7 @@ Browser verification (Task 6 of the eventual plan):
 - `<OrbStage />` renders the SVG fallback under SSR/jsdom; renders `<OrbCanvas />` on a WebGL-capable client.
 - Orb visible at `/` at all three breakpoints, no horizontal overflow.
 - No console errors or React hydration warnings.
+- Initial page load: the SVG fallback is visible immediately; the canvas fades in over 300 ms once it paints its first frame. No flash, no visible cut at the swap point (verify with a screen recording at 60 fps if needed).
 - Drift is continuous on a fresh viewport, pauses when the page is scrolled past the orb (verify by scrolling to bottom and observing the perf timeline shows no GPU work), pauses when the tab loses visibility.
 - Reduced-motion emulation freezes the orb at frame 0.
 - Visual side-by-side against `references/screenshots/hero-frame-03.png` reads as the same effect (mood, palette, fresnel rim, grain — not pixel-identical).
@@ -308,7 +325,7 @@ Browser verification (Task 6 of the eventual plan):
 ## Risks
 
 - **Bundle size.** three + R3F + drei adds ~150 KB gzipped. Step 10 (polish + SEO) will need to confirm Lighthouse perf stays acceptable. If the orb is the only R3F user, drei may be pruned out — we only need it for utilities, so import only what we use (avoid `* as drei`).
-- **Hydration race.** The dispatcher uses `useSyncExternalStore` with a server snapshot of `false`. The fallback is the *server* output. After client hydration, `useSyncExternalStore` re-evaluates and may swap to the canvas. There's a brief moment where the SVG is still mounted before the canvas takes over — verify in browser that the swap is invisible (the fallback's palette is close enough that the eye doesn't catch the transition).
+- **Hydration race.** Mitigated by Decision 7: the SVG fallback never unmounts. The canvas overlays it and fades in over 300 ms after first frame. Risk reduces to "the 300 ms crossfade reads cleanly" — verify in the browser that the SVG palette is close enough to the shader's first frame that the fade is visually continuous, not a hard cut.
 - **R3F + StrictMode double-mount.** Dev runs `<Canvas>`'s effect twice. Confirm the second mount doesn't leak GL contexts or stack memory. The fix, if needed: a stable key on `<Canvas>` and lifting state up so re-mount is cheap.
 - **Vertex normal recomputation.** The central-difference approach in the vertex shader is approximate. If banding artifacts show up at the silhouette under low displacement amplitudes, we switch to an analytic gradient (snoise has one, just more code). Spec a swap, not a debug session.
 - **Tailwind v4 + R3F in the same `<Canvas>` parent.** The canvas is absolutely positioned (`inset-0`) inside the hero section. Confirm Tailwind's preflight doesn't override the canvas's intrinsic styles — should be fine because we're using inline style on the canvas (controlled by R3F).
