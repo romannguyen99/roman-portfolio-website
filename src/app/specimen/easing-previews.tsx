@@ -8,6 +8,11 @@ const EASINGS = [
   { name: "ease-linear", value: "var(--ease-linear)" },
 ] as const;
 
+// translate() percentages reference the element's own size, not the container.
+// Dot is 24px wide; this lands it ~336px right of its start, well inside the
+// 448px (max-w-md) container with the label still visible on the right.
+const DOT_TRAVEL = "calc(100% * 14)";
+
 export function EasingPreviews() {
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -29,7 +34,7 @@ export function EasingPreviews() {
             <span
               className="absolute top-1/2 left-2 block h-6 w-6 -translate-y-1/2 rounded-full bg-[var(--color-accent)]"
               style={{
-                transform: `translate(${isActive ? "calc(100% * 14)" : "0"}, -50%)`,
+                transform: `translate(${isActive ? DOT_TRAVEL : "0"}, -50%)`,
                 transitionProperty: "transform",
                 transitionDuration: "var(--duration-base)",
                 transitionTimingFunction: value,
