@@ -26,4 +26,10 @@ describe("hexToRgb", () => {
       0x74 / 255,
     ]);
   });
+
+  it("returns [0,0,0] for non-hex input (e.g. rgb(), oklch())", () => {
+    expect(hexToRgb("rgb(212, 165, 116)")).toEqual([0, 0, 0]);
+    expect(hexToRgb("oklch(0.75 0.1 60)")).toEqual([0, 0, 0]);
+    expect(hexToRgb("")).toEqual([0, 0, 0]);
+  });
 });

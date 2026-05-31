@@ -47,6 +47,11 @@ void main() {
 
   vec4 worldPos = modelMatrix * vec4(displaced, 1.0);
   vWorldPos = worldPos.xyz;
+  // World-space normal. Three's normalMatrix produces a view-space normal,
+  // but the fragment shader compares against cameraPosition which is in
+  // world space. mat3(modelMatrix) is correct under uniform scale — the
+  // orb mesh never scales non-uniformly, so this is safe. If a future step
+  // introduces non-uniform scale, swap to transpose(inverse(mat3(modelMatrix))).
   vNormal = normalize(mat3(modelMatrix) * perturbed);
   vDisp = disp;
 

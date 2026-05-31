@@ -16,6 +16,7 @@ varying vec3 vNormal;
 varying float vDisp;
 
 uniform float u_time;
+uniform vec2 u_resolution;
 uniform vec3 u_bg;
 uniform vec3 u_accent;
 uniform vec3 u_accent2;
@@ -48,7 +49,9 @@ void main() {
   color = mix(color, mix(u_accent, pale, 0.5), fres * 0.6);
   color += spec * pale * 0.35;
 
-  vec2 screenUv = gl_FragCoord.xy / 1000.0;
+  // gl_FragCoord is in physical pixels; u_resolution is too. The grain
+  // tile size stays consistent across DPRs and viewport sizes.
+  vec2 screenUv = gl_FragCoord.xy / max(u_resolution.x, 1.0);
   float grain = (hash(screenUv + fract(u_time)) - 0.5) * 0.06;
   color += grain;
 

@@ -51,9 +51,15 @@ export function Orb({ running, onFirstFrame, lightRef }: Props) {
     matRef.current.uniforms.u_resolution.value.set(size.width, size.height);
   }, [size.width, size.height]);
 
+  const framesSeenRef = useRef(0);
+
   useFrame(({ clock }) => {
     if (!matRef.current) return;
-    matRef.current.uniforms.u_time.value = running ? clock.elapsedTime : 0;
+    // Only advance time while running — never write a "paused" value, or the
+    // shader sees a discontinuous time jump when the orb resumes.
+    if (running) {
+      matRef.current.uniforms.u_time.value = clock.elapsedTime;
+    }
     // Sync the key-light direction from the scene's <directionalLight>.
     // Cheap (~3 float copies) and means step 5 can tween the React prop on
     // <OrbCanvas> without touching shader code.
@@ -63,9 +69,17 @@ export function Orb({ running, onFirstFrame, lightRef }: Props) {
         .copy(light.position)
         .normalize();
     }
+    // useFrame runs before the browser composites the canvas. Fire
+    // onFirstFrame on the *second* useFrame so the caller's crossfade
+    // doesn't race a still-blank canvas.
     if (!firedRef.current) {
-      firedRef.current = true;
-      onFirstFrame();
+      framesSeenRef.current += 1;
+      if (framesSeenRef.current >= 2) {
+        firedRef.current = true;
+        onFirstFrame();
+      } else {
+        invalidate();
+      }
     }
     if (running) invalidate();
   });
