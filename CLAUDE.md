@@ -10,7 +10,7 @@ Roman Nguyen's personal portfolio. A single-page, scroll-driven site.
 
 **Design source of truth:** [references/screenshots/](references/screenshots/) — `hero-frame-01.png` through `hero-frame-11.png` are the canonical hero reference. Match their aesthetic, not pixel-for-pixel layout. When proposing visual changes, cite specific frames.
 
-**Design rationale:** [references/design-note.mb](references/design-note.mb) — written design notes (palette, type scale, motion language, section-by-section observations from monopo.vn). Read this when starting a visual step.
+**Design rationale:** [references/design-note.md](references/design-note.md) — written design notes (palette, type scale, motion language, section-by-section observations from monopo.vn). Read this when starting a visual step.
 
 ## 2. Tech stack
 
