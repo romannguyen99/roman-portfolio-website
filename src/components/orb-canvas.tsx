@@ -48,7 +48,7 @@ export function OrbCanvas({ onFirstFrame }: Props) {
       <Canvas
         frameloop="demand"
         dpr={[1, 2]}
-        camera={{ position: [0, 0, 2.4], fov: 45 }}
+        camera={{ position: [0, 0, 1.8], fov: 45 }}
         gl={{ antialias: true, alpha: false }}
         style={{ position: "absolute", inset: 0 }}
       >
