@@ -20,7 +20,7 @@ Land the hero's anchoring visual: an iridescent, slowly-drifting oil-on-water or
 ## Decisions
 
 1. **Rebuild fresh, not port-forward.** The prior implementation at `1274fd6` ran an OGL fullscreen-quad fragment shader doing sphere imposter math. We're using R3F + a real `<mesh>` instead.
-2. **Renderer: React Three Fiber + drei.** Bundle cost (~150 KB gz for three + R3F + drei) is accepted in exchange for idiomatic React, a real scene graph (camera + lights as React props), and a clean path to scroll-driven scene mutations in later steps.
+2. **Renderer: React Three Fiber.** Bundle cost (~120 KB gz for three + R3F) is accepted in exchange for idiomatic React, a real scene graph (camera + lights as React props), and a clean path to scroll-driven scene mutations in later steps. `@react-three/drei` is deliberately **not** installed at step 3 — nothing here needs its utilities; reintroduce in a later step if/when something does.
 3. **Geometry: real 3D icosphere with vertex displacement** (not the imposter). True geometric silhouette ripple; sets up step 5's scroll-warp without a rewrite.
 4. **Material: custom `<shaderMaterial>` with hand-written GLSL.** drei's `<MeshDistortMaterial>` and `<MeshWobbleMaterial>` cannot produce iridescent oil bands; we need our own fragment shader. We bring in the prior shader's algorithm (lifted from `1274fd6`, lightly adapted) for the color pipeline.
 5. **Lighting hybrid.** A real `<directionalLight>` is in the scene to act as the source of truth for key-light direction (so step 5 can tween it from React). The fragment shader still does its own Lambert + fresnel using the light direction as a uniform — Three's stock lighting can't produce the look.
@@ -47,7 +47,7 @@ Land the hero's anchoring visual: an iridescent, slowly-drifting oil-on-water or
 | `src/hooks/use-reduced-motion.ts` | Create | `useReducedMotion(): boolean` via `useSyncExternalStore` for SSR-safe matchMedia. |
 | `src/hooks/use-reduced-motion.test.tsx` | Create | matchMedia mock; SSR snapshot returns false; client respects the media query. |
 | `src/components/orb-stage.test.tsx` | Create | Renders the fallback when `isWebGLAvailable` is mocked false; renders the canvas wrapper when true. No actual Three render under jsdom. |
-| `package.json` | Modify | Add `three`, `@react-three/fiber`, `@react-three/drei` (and `@types/three` if not pulled in by three's own types). |
+| `package.json` | Modify | Add `three`, `@react-three/fiber`, `@types/three`. |
 
 The prior files at commit `1274fd6` are not re-checked-out; they're treated as reference. New files are written fresh, lifting the proven sub-pieces (shader color pipeline, hexToRgb, WebGL detector, SVG fallback markup) directly.
 
@@ -324,7 +324,7 @@ Browser verification (Task 6 of the eventual plan):
 
 ## Risks
 
-- **Bundle size.** three + R3F + drei adds ~150 KB gzipped. Step 10 (polish + SEO) will need to confirm Lighthouse perf stays acceptable. If the orb is the only R3F user, drei may be pruned out — we only need it for utilities, so import only what we use (avoid `* as drei`).
+- **Bundle size.** three + R3F adds ~120 KB gzipped. Step 10 (polish + SEO) will need to confirm Lighthouse perf stays acceptable.
 - **Hydration race.** Mitigated by Decision 7: the SVG fallback never unmounts. The canvas overlays it and fades in over 300 ms after first frame. Risk reduces to "the 300 ms crossfade reads cleanly" — verify in the browser that the SVG palette is close enough to the shader's first frame that the fade is visually continuous, not a hard cut.
 - **R3F + StrictMode double-mount.** Dev runs `<Canvas>`'s effect twice. Confirm the second mount doesn't leak GL contexts or stack memory. The fix, if needed: a stable key on `<Canvas>` and lifting state up so re-mount is cheap.
 - **Vertex normal recomputation.** The central-difference approach in the vertex shader is approximate. If banding artifacts show up at the silhouette under low displacement amplitudes, we switch to an analytic gradient (snoise has one, just more code). Spec a swap, not a debug session.
