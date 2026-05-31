@@ -67,6 +67,7 @@
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-display);
+    font-weight: 400;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
   }
