@@ -1,7 +1,13 @@
+import { OrbStage } from "@/components/orb-stage";
+
 export function Hero() {
   return (
-    <section id="hero" aria-labelledby="hero-heading">
-      <h1 id="hero-heading">Hero</h1>
+    <section
+      id="hero"
+      aria-label="Hero"
+      className="relative min-h-screen overflow-hidden"
+    >
+      <OrbStage />
     </section>
   );
 }

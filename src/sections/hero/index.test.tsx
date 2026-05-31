@@ -1,4 +1,9 @@
 import { render, screen } from "@testing-library/react";
+
+vi.mock("@/components/orb-stage", () => ({
+  OrbStage: () => <div data-testid="orb-stage" />,
+}));
+
 import { Hero } from "./index";
 
 describe("Hero section", () => {
@@ -8,9 +13,8 @@ describe("Hero section", () => {
     expect(region).toHaveAttribute("id", "hero");
   });
 
-  it("uses an <h1> for the heading", () => {
+  it("mounts the OrbStage inside the section", () => {
     render(<Hero />);
-    const heading = screen.getByRole("heading", { name: "Hero", level: 1 });
-    expect(heading).toBeInTheDocument();
+    expect(screen.getByTestId("orb-stage")).toBeInTheDocument();
   });
 });
