@@ -61,7 +61,7 @@ Sequential. Each step is one brainstorm → spec → plan → subagent-exec → 
 
 - [x] **1. Scaffold** — Next.js 16 + TS + Tailwind v4 + Vitest + ESLint/Prettier; empty section stubs; CI-free local-only baseline
 - [x] **2. Design tokens & typography** — palette (deep green/black + oil-slick accents), type scale, spacing scale, fonts (display + body), global CSS reset
-- [ ] **3. Hero orb shader** — WebGL fragment shader; iridescent oil-slick palette; sphere-projected UVs + fresnel; cinematic grain; CSS-gradient fallback; reduced-motion path
+- [x] **3. Hero orb shader** — WebGL fragment shader; iridescent oil-slick palette; sphere-projected UVs + fresnel; cinematic grain; CSS-gradient fallback; reduced-motion path
 - [ ] **4. Hero entrance + nav** — orb mount-in, tagline cycle (English + Vietnamese), top-right nav anchors, scroll-down badge
 - [ ] **5. Smooth scroll + section scaffolding** — Lenis provider, GSAP ScrollTrigger setup, empty section frames with anchor IDs
 - [ ] **6. Work grid** — MDX project loader, card layout, hover/reveal motion, project detail route
