@@ -29,7 +29,6 @@ src/app/globals.css                  rewrite: full @theme block + base layer
 src/app/layout.tsx                   add font variables to <html> className
 src/app/specimen/page.tsx            NEW: token specimen route
 src/lib/fonts.ts                     NEW: next/font instances
-src/lib/fonts.test.ts                NEW: smoke test
 ```
 
 ## Tokens
@@ -167,8 +166,7 @@ Not linked from `/`. Removed (or excluded from production) at step 10.
 
 ## Testing
 
-- **No Vitest tests for token values.** Asserting `getComputedStyle` returns a hex you literally just wrote is a tautology.
-- **One smoke test:** `src/lib/fonts.test.ts` asserts each exported font has a `.variable` string. Catches a broken next/font import.
+- **No Vitest tests.** Token values are CSS — asserting `getComputedStyle` returns a hex you just wrote is a tautology. The fonts module is build-time plumbing (`next/font/google` only runs inside the Next.js build pipeline), so a Vitest smoke test would require mocking the module entirely, which makes the test tautological too. `npm run build` runs the real `next/font` pipeline and is the genuine catch for a broken font import.
 - **Browser verification (the real check):**
   1. `npm run dev`, navigate to `http://localhost:3000/specimen`.
   2. Playwright screenshots at 1440, 768, 375.

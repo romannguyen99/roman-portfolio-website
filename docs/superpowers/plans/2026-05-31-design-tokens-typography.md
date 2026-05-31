@@ -4,9 +4,9 @@
 
 **Goal:** Land the visual foundation for the portfolio — brand color palette, type scale, fonts, spacing rhythm, motion tokens, and a global CSS reset — exposed as Tailwind v4 `@theme` tokens, with a dev-only `/specimen` route that visually proves every token works.
 
-**Architecture:** All design tokens live in the `@theme` block of `src/app/globals.css` (Tailwind v4 CSS-first config — no `tailwind.config.ts`). Fonts load via `next/font/google` from `src/lib/fonts.ts`, exposing CSS variables (`--font-plus-jakarta`, `--font-jetbrains`) consumed by `--font-display` / `--font-mono` tokens. A small `@layer base` block sets `color-scheme: dark`, body defaults, focus rings, and a global `prefers-reduced-motion` short-circuit. The `/specimen` page renders every token visually and is the verification target — no Vitest tests for the token values themselves (tautological); one smoke test for the fonts module to catch a broken `next/font` import.
+**Architecture:** All design tokens live in the `@theme` block of `src/app/globals.css` (Tailwind v4 CSS-first config — no `tailwind.config.ts`). Fonts load via `next/font/google` from `src/lib/fonts.ts`, exposing CSS variables (`--font-plus-jakarta`, `--font-jetbrains`) consumed by `--font-display` / `--font-mono` tokens. A small `@layer base` block sets `color-scheme: dark`, body defaults, focus rings, and a global `prefers-reduced-motion` short-circuit. The `/specimen` page renders every token visually and is the verification target. No Vitest tests — token values and the fonts module are CSS / build-time plumbing; the real catch is `npm run build` (runs the genuine `next/font` pipeline) plus the browser verification on `/specimen`.
 
-**Tech Stack:** Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4, `next/font/google` (Plus Jakarta Sans + JetBrains Mono), Vitest (smoke test), Playwright (visual verification).
+**Tech Stack:** Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4, `next/font/google` (Plus Jakarta Sans + JetBrains Mono), Playwright (visual verification).
 
 **Spec:** [docs/superpowers/specs/2026-05-31-design-tokens-typography-design.md](../specs/2026-05-31-design-tokens-typography-design.md)
 
@@ -28,7 +28,6 @@
 | Path | Action | Responsibility |
 |------|--------|----------------|
 | `src/lib/fonts.ts` | Create | Single source for `next/font` instances (`plusJakarta`, `jetbrainsMono`). Exports CSS-variable class names for layout to attach. |
-| `src/lib/fonts.test.ts` | Create | Smoke test asserting both font exports carry a `.variable` string. Guards against a broken next/font import. |
 | `src/app/layout.tsx` | Modify | Attach `plusJakarta.variable` + `jetbrainsMono.variable` to `<html>` className so CSS vars resolve site-wide. |
 | `src/app/globals.css` | Rewrite | Full `@theme` block (colors, fonts, type scale, spacing, motion) + `@layer base` reset (color-scheme, body defaults, focus, reduced-motion). |
 | `src/app/specimen/page.tsx` | Create | Dev-only server component. Renders six sections: color swatches, type ladder (bilingual sample), italic+roman mix, spacing scale, easing previews, mono sample. |
@@ -39,38 +38,14 @@ No new dependencies. Plus Jakarta Sans + JetBrains Mono ship through `next/font/
 
 ---
 
-## Task 1: Fonts module + smoke test
+## Task 1: Fonts module
 
 **Files:**
 - Create: `src/lib/fonts.ts`
-- Create: `src/lib/fonts.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+No Vitest test — `next/font/google` is a Next.js build-time loader that doesn't resolve under Vitest/jsdom. Mocking it produces a tautological test (verifies the mock returned what the mock returns). The real catch for a broken font import is `npm run build`, which runs the genuine `next/font` pipeline. We verify it ran cleanly in Task 6.
 
-Create `src/lib/fonts.test.ts`:
-
-```ts
-import { plusJakarta, jetbrainsMono } from "./fonts";
-
-describe("fonts module", () => {
-  it("exports plusJakarta with a CSS variable class", () => {
-    expect(typeof plusJakarta.variable).toBe("string");
-    expect(plusJakarta.variable.length).toBeGreaterThan(0);
-  });
-
-  it("exports jetbrainsMono with a CSS variable class", () => {
-    expect(typeof jetbrainsMono.variable).toBe("string");
-    expect(jetbrainsMono.variable.length).toBeGreaterThan(0);
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `npm run test -- src/lib/fonts.test.ts`
-Expected: FAIL with "Failed to resolve import './fonts'" or equivalent.
-
-- [ ] **Step 3: Write the minimal implementation**
+- [ ] **Step 1: Create the module**
 
 Create `src/lib/fonts.ts`:
 
@@ -93,15 +68,15 @@ export const jetbrainsMono = JetBrains_Mono({
 });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 2: Verify type check passes**
 
-Run: `npm run test -- src/lib/fonts.test.ts`
-Expected: PASS, 2 tests.
+Run: `npm run typecheck`
+Expected: no errors.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add src/lib/fonts.ts src/lib/fonts.test.ts
+git add src/lib/fonts.ts
 git commit -m "feat: add next/font module for Plus Jakarta Sans + JetBrains Mono"
 ```
 
