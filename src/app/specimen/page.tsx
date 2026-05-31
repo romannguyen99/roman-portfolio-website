@@ -28,6 +28,10 @@ const TYPE_SCALE = [
 
 const BILINGUAL_SAMPLE = "Tokyo-born — Đến từ Tokyo. Creative studio, hội tụ không giới hạn.";
 
+const H2_CLASS = "text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]";
+const CAPTION_LABEL_CLASS =
+  "font-[var(--font-mono)] text-[length:var(--text-caption)] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]";
+
 export default function SpecimenPage() {
   return (
     <main className="mx-auto max-w-[1200px] px-(--spacing-section-x) py-(--spacing-section-y) space-y-24">
@@ -45,7 +49,7 @@ export default function SpecimenPage() {
       </header>
 
       <section aria-labelledby="colors-heading" className="space-y-6">
-        <h2 id="colors-heading" className="text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]">
+        <h2 id="colors-heading" className={H2_CLASS}>
           Colors
         </h2>
         <ul className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
@@ -55,7 +59,7 @@ export default function SpecimenPage() {
                 className="h-24 w-full rounded border border-[var(--color-fg-dim)]"
                 style={{ background: c.value }}
               />
-              <div className="font-[var(--font-mono)] text-[length:var(--text-caption)] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]">
+              <div className={CAPTION_LABEL_CLASS}>
                 color-{c.name}
               </div>
               <div className="font-[var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-fg)]">
@@ -67,13 +71,13 @@ export default function SpecimenPage() {
       </section>
 
       <section aria-labelledby="type-heading" className="space-y-8">
-        <h2 id="type-heading" className="text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]">
+        <h2 id="type-heading" className={H2_CLASS}>
           Type scale
         </h2>
         <ul className="space-y-6">
           {TYPE_SCALE.map((t) => (
             <li key={t.token} className="space-y-1">
-              <div className="font-[var(--font-mono)] text-[length:var(--text-caption)] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]">
+              <div className={CAPTION_LABEL_CLASS}>
                 {t.token}
               </div>
               <p className={t.className}>{BILINGUAL_SAMPLE}</p>
@@ -83,7 +87,7 @@ export default function SpecimenPage() {
       </section>
 
       <section aria-labelledby="italic-heading" className="space-y-4">
-        <h2 id="italic-heading" className="text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]">
+        <h2 id="italic-heading" className={H2_CLASS}>
           Italic + roman
         </h2>
         <p className="text-[length:var(--text-h3)] leading-[1.2]">
@@ -93,18 +97,18 @@ export default function SpecimenPage() {
       </section>
 
       <section aria-labelledby="spacing-heading" className="space-y-4">
-        <h2 id="spacing-heading" className="text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]">
+        <h2 id="spacing-heading" className={H2_CLASS}>
           Spacing
         </h2>
         <div className="space-y-3">
           <div className="space-y-1">
-            <div className="font-[var(--font-mono)] text-[length:var(--text-caption)] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]">
+            <div className={CAPTION_LABEL_CLASS}>
               spacing-section-x
             </div>
             <div className="h-6 bg-[var(--color-accent)]" style={{ width: "var(--spacing-section-x)" }} />
           </div>
           <div className="space-y-1">
-            <div className="font-[var(--font-mono)] text-[length:var(--text-caption)] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]">
+            <div className={CAPTION_LABEL_CLASS}>
               spacing-section-y
             </div>
             <div className="w-6 bg-[var(--color-accent-2)]" style={{ height: "var(--spacing-section-y)" }} />
@@ -113,7 +117,7 @@ export default function SpecimenPage() {
       </section>
 
       <section aria-labelledby="motion-heading" className="space-y-4">
-        <h2 id="motion-heading" className="text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]">
+        <h2 id="motion-heading" className={H2_CLASS}>
           Motion
         </h2>
         <p className="text-[length:var(--text-body)] text-[var(--color-fg-muted)]">
@@ -124,17 +128,15 @@ export default function SpecimenPage() {
       </section>
 
       <section aria-labelledby="mono-heading" className="space-y-4">
-        <h2 id="mono-heading" className="text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]">
+        <h2 id="mono-heading" className={H2_CLASS}>
           Mono
         </h2>
-        <pre className="bg-[var(--color-bg-alt)] rounded p-4 font-[var(--font-mono)] text-[length:var(--text-body)] text-[var(--color-fg)] overflow-x-auto">
-{`// Tagline cycle — chu kỳ khẩu hiệu
+        <pre className="bg-[var(--color-bg-alt)] rounded p-4 font-[var(--font-mono)] text-[length:var(--text-body)] text-[var(--color-fg)] overflow-x-auto">{`// Tagline cycle — chu kỳ khẩu hiệu
 const phrases = [
   "Creative studio, Đến từ Tokyo",
   "Tokyo-born, Creative studio",
   "Hội tụ, Không giới hạn",
-];`}
-        </pre>
+];`}</pre>
       </section>
     </main>
   );
