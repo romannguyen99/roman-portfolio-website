@@ -30,7 +30,7 @@ const BILINGUAL_SAMPLE = "Tokyo-born — Đến từ Tokyo. Creative studio, h�
 
 const H2_CLASS = "text-[length:var(--text-h2)] leading-[1.05] tracking-[-0.01em]";
 const CAPTION_LABEL_CLASS =
-  "font-[var(--font-mono)] text-[length:var(--text-caption)] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]";
+  "font-[var(--font-mono)] text-[length:var(--text-caption)] leading-[1.4] uppercase tracking-[0.1em] text-[var(--color-fg-muted)]";
 
 export default function SpecimenPage() {
   return (

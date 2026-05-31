@@ -159,7 +159,7 @@ The reduced-motion block is global so every later animation inherits it without 
 2. **Type ladder** — `display → caption` rendered with a bilingual sample: `"Tokyo-born — Đến từ Tokyo. Creative studio, hội tụ không giới hạn."` Confirms Vietnamese diacritics render (no tofu) and the type scale reads correctly.
 3. **Italic + roman mix** — `"Tokyo-born, *Creative studio*"` to confirm italic loads and looks distinct.
 4. **Spacing scale** — visual stripes labeled with `section-x` / `section-y` actual computed widths.
-5. **Easing previews** — four boxes that translate-x on hover, each with a different easing. The reduced-motion block above means these snap instantly under reduce-motion.
+5. **Easing previews** — three boxes that translate-x on hover, one per easing token. The reduced-motion block above means these snap instantly under reduce-motion.
 6. **Mono sample** — short JetBrains Mono code block with English + Vietnamese to confirm the mono font + subset.
 
 Not linked from `/`. Removed (or excluded from production) at step 10.
