@@ -29,3 +29,15 @@ test('mobile menu opens, locks scroll, and closes', async ({ page }) => {
   await expect(page.locator('body')).not.toHaveClass(/menu-open/);
   await expect(page.locator('.menu-overlay')).toHaveCSS('opacity', '0');
 });
+
+test('canvas is sized and shader compiles without console errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('favicon')) errors.push(m.text()); });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await page.waitForTimeout(300);
+  const size = await page.locator('#hero-canvas').evaluate((c) => ({ w: (c as HTMLCanvasElement).width, h: (c as HTMLCanvasElement).height }));
+  expect(size.w).toBeGreaterThan(0);
+  expect(size.h).toBeGreaterThan(0);
+  expect(errors).toEqual([]); // no GLSL compile / runtime errors
+});
