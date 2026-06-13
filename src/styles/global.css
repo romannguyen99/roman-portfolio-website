@@ -1,0 +1,23 @@
+:root {
+  /* palette (earth tones on near-black) */
+  --c-near-black: #070806;
+  --c-warm-black: #100D08;
+  --c-olive: #2D301C;
+  --c-moss: #474729;
+  --c-amber: #493019;
+  --c-bronze: #704A22;
+  --c-ochre: #987032;
+  --c-gold: #AD853D;
+  --c-teal: #142724;
+  --c-text: #F4F2EE;
+  --c-text-dim: rgba(244, 242, 238, 0.65);
+  --c-text-faint: rgba(244, 242, 238, 0.52);
+
+  /* type */
+  --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { background: var(--c-near-black); overflow-x: hidden; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; color: var(--c-text); }
+a { text-decoration: none; color: inherit; }
