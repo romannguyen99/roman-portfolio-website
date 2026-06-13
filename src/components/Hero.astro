@@ -1,0 +1,108 @@
+---
+---
+<section class="hero">
+  <canvas id="hero-canvas" class="hero-canvas"></canvas>
+  <div class="hero-grain"></div>
+
+  <div class="hero-ui">
+    <div class="wordmark">roman nguyen</div>
+    <div class="lang"><b>EN</b> / VN</div>
+    <nav class="nav">
+      <a href="#work">WORK</a>
+      <a href="#thoughts">THOUGHTS</a>
+      <a href="#about">ABOUT ME</a>
+    </nav>
+    <button class="menu-btn" aria-label="Open menu"><span></span><span></span></button>
+
+    <h1 class="headline"><span>Roman</span> <span>Nguyen</span></h1>
+
+    <div class="scroll" aria-hidden="true">
+      <svg viewBox="0 0 100 100">
+        <defs><path id="circ" d="M50,50 m-34,0 a34,34 0 1,1 68,0 a34,34 0 1,1 -68,0"/></defs>
+        <text><textPath href="#circ" startOffset="0%">SCROLL TO EXPLORE · SCROLL TO EXPLORE · </textPath></text>
+      </svg>
+      <span class="dot"></span>
+    </div>
+  </div>
+
+  <div class="menu-overlay" hidden>
+    <button class="menu-close" aria-label="Close menu"></button>
+    <a href="#work">Work</a>
+    <a href="#thoughts">Thoughts</a>
+    <a href="#about">About Me</a>
+  </div>
+</section>
+
+<style>
+  .hero { position: relative; width: 100%; height: 100svh; overflow: hidden; background: var(--c-near-black); }
+
+  .hero-canvas { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; }
+
+  .hero-grain {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    opacity: 0.05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 150px 150px;
+  }
+
+  .hero-ui {
+    position: absolute; inset: 0; z-index: 3;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wordmark { position: absolute; top: 30px; left: 38px; color: rgba(244,242,238,0.88); font-size: 13px; font-weight: 450; letter-spacing: 0.2px; }
+  .lang { position: absolute; top: 31px; left: 50%; transform: translateX(-50%); color: var(--c-text-faint); font-size: 10px; letter-spacing: 3px; }
+  .lang b { color: rgba(244,242,238,0.9); font-weight: 500; }
+  .nav { position: absolute; top: 30px; right: 38px; display: flex; flex-direction: column; gap: 14px; text-align: right; }
+  .nav a { color: var(--c-text-dim); font-size: 11.5px; letter-spacing: 1.5px; transition: color .4s ease; }
+  .nav a:hover { color: #fff; }
+  .menu-btn { display: none; position: absolute; top: 26px; right: 24px; width: 28px; height: 16px; cursor: pointer; flex-direction: column; justify-content: space-between; background: none; border: 0; padding: 0; }
+  .menu-btn span { display: block; height: 1.5px; width: 100%; background: rgba(244,242,238,0.85); }
+  .menu-btn span:nth-child(2) { width: 66%; align-self: flex-end; }
+
+  .headline {
+    position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+    color: var(--c-text); font-size: clamp(56px, 5.5vw, 88px); font-weight: 480;
+    letter-spacing: -0.04em; line-height: 1; white-space: nowrap;
+  }
+
+  .scroll { position: absolute; left: 38px; bottom: 34px; width: 58px; height: 58px; }
+  .scroll svg { width: 100%; height: 100%; animation: spin 18s linear infinite; }
+  .scroll text { fill: rgba(244,242,238,0.62); font-size: 9px; letter-spacing: 2.3px; }
+  .scroll .dot { position: absolute; inset: 0; margin: auto; width: 4px; height: 4px; border-radius: 50%; background: rgba(244,242,238,0.85); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .menu-overlay {
+    position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 0 38px;
+    background:
+      radial-gradient(50% 40% at 85% 8%, rgba(118,81,38,0.26), transparent 62%),
+      radial-gradient(60% 50% at 18% 96%, rgba(74,75,39,0.24), transparent 60%),
+      var(--c-near-black);
+    opacity: 0; pointer-events: none; transition: opacity .5s ease;
+  }
+  .menu-overlay[hidden] { display: flex; } /* keep in flow; visibility driven by .is-open */
+  .menu-overlay a { color: rgba(244,242,238,0.92); font-size: 34px; font-weight: 450; letter-spacing: -0.02em; padding: 10px 0; opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .menu-close { position: absolute; top: 24px; right: 24px; width: 22px; height: 22px; cursor: pointer; background: none; border: 0; }
+  .menu-close::before, .menu-close::after { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1.5px; background: rgba(244,242,238,0.85); }
+  .menu-close::before { transform: rotate(45deg); }
+  .menu-close::after { transform: rotate(-45deg); }
+
+  body.menu-open { overflow: hidden; }
+  body.menu-open .menu-overlay { opacity: 1; pointer-events: auto; }
+  body.menu-open .menu-overlay a { opacity: 1; transform: translateY(0); }
+  body.menu-open .menu-overlay a:nth-child(2) { transition-delay: .08s; }
+  body.menu-open .menu-overlay a:nth-child(3) { transition-delay: .16s; }
+  body.menu-open .menu-overlay a:nth-child(4) { transition-delay: .24s; }
+
+  @media (max-width: 640px) {
+    .nav { display: none; }
+    .menu-btn { display: flex; }
+    .wordmark { left: 24px; top: 24px; }
+    .lang { top: 26px; }
+    .headline { top: 46svh; font-size: clamp(40px, 10.5vw, 48px); letter-spacing: -0.035em; line-height: 0.97; }
+    .scroll { left: 24px; bottom: 30px; width: 66px; height: 66px; }
+    .scroll text { fill: rgba(244,242,238,0.72); }
+  }
+  @media (max-width: 360px) {
+    .headline { white-space: normal; display: flex; flex-direction: column; align-items: center; line-height: 0.95; }
+  }
+</style>
