@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hero preview v3 — shared field shader</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;450;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #070806; overflow-x: hidden; }
+  body { font-family: 'Space Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { text-decoration: none; }
+
+  .hero { position: relative; width: 100%; height: 100svh; overflow: hidden; background: #070806; }
+
+  /* ===== shared procedural field (background + circular window) ===== */
+  #gl { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; }
+
+  /* ===== film grain (unchanged) ===== */
+  .hero-grain {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    opacity: 0.05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 150px 150px;
+  }
+
+  /* ===== UI LAYER (unchanged) ===== */
+  .hero-ui { position: absolute; inset: 0; z-index: 3;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .wordmark { position: absolute; top: 30px; left: 38px; color: rgba(244,242,238,0.88); font-size: 13px; font-weight: 450; letter-spacing: 0.2px; }
+  .lang { position: absolute; top: 31px; left: 50%; transform: translateX(-50%); color: rgba(244,242,238,0.52); font-size: 10px; letter-spacing: 3px; }
+  .lang b { color: rgba(244,242,238,0.9); font-weight: 500; }
+  .nav { position: absolute; top: 30px; right: 38px; display: flex; flex-direction: column; gap: 14px; text-align: right; }
+  .nav a { color: rgba(244,242,238,0.65); font-size: 11.5px; letter-spacing: 1.5px; transition: color .4s ease; }
+  .nav a:hover { color: #fff; }
+  .menu-btn { display: none; position: absolute; top: 26px; right: 24px; width: 28px; height: 16px; cursor: pointer; flex-direction: column; justify-content: space-between; }
+  .menu-btn span { display: block; height: 1.5px; width: 100%; background: rgba(244,242,238,0.85); }
+  .menu-btn span:nth-child(2) { width: 66%; align-self: flex-end; }
+  .headline { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); color: #f4f2ee; font-size: clamp(56px, 5.5vw, 88px); font-weight: 480; letter-spacing: -0.04em; line-height: 1; white-space: nowrap; }
+  .scroll { position: absolute; left: 38px; bottom: 34px; width: 58px; height: 58px; }
+  .scroll svg { width: 100%; height: 100%; animation: spin 18s linear infinite; }
+  .scroll text { fill: rgba(244,242,238,0.62); font-size: 9px; letter-spacing: 2.3px; }
+  .scroll .dot { position: absolute; inset: 0; margin: auto; width: 4px; height: 4px; border-radius: 50%; background: rgba(244,242,238,0.85); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .menu-overlay { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 0 38px;
+    background: radial-gradient(50% 40% at 85% 8%, rgba(118,81,38,0.26), transparent 62%), radial-gradient(60% 50% at 18% 96%, rgba(74,75,39,0.24), transparent 60%), #070806;
+    opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+  .menu-overlay a { color: rgba(244,242,238,0.92); font-size: 34px; font-weight: 450; letter-spacing: -0.02em; padding: 10px 0; opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .menu-close { position: absolute; top: 24px; right: 24px; width: 22px; height: 22px; cursor: pointer; }
+  .menu-close::before, .menu-close::after { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1.5px; background: rgba(244,242,238,0.85); }
+  .menu-close::before { transform: rotate(45deg); } .menu-close::after { transform: rotate(-45deg); }
+  body.menu-open { overflow: hidden; }
+  body.menu-open .menu-overlay { opacity: 1; pointer-events: auto; }
+  body.menu-open .menu-overlay a { opacity: 1; transform: translateY(0); }
+  body.menu-open .menu-overlay a:nth-child(1) { transition-delay: .08s; }
+  body.menu-open .menu-overlay a:nth-child(2) { transition-delay: .16s; }
+  body.menu-open .menu-overlay a:nth-child(3) { transition-delay: .24s; }
+
+  @media (max-width: 640px) {
+    .nav { display: none; } .menu-btn { display: flex; }
+    .wordmark { left: 24px; top: 24px; } .lang { top: 26px; }
+    .headline { top: 46svh; font-size: clamp(40px, 10.5vw, 48px); letter-spacing: -0.035em; line-height: 0.97; }
+    .scroll { left: 24px; bottom: 30px; width: 66px; height: 66px; } .scroll text { fill: rgba(244,242,238,0.72); }
+  }
+  @media (max-width: 360px) { .headline { white-space: normal; display: flex; flex-direction: column; align-items: center; line-height: 0.95; } }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <canvas id="gl"></canvas>
+    <div class="hero-grain"></div>
+    <div class="hero-ui">
+      <div class="wordmark">roman nguyen</div>
+      <div class="lang"><b>EN</b> / VN</div>
+      <nav class="nav"><a href="#work">WORK</a><a href="#thoughts">THOUGHTS</a><a href="#about">ABOUT ME</a></nav>
+      <div class="menu-btn"><span></span><span></span></div>
+      <h1 class="headline"><span>Roman</span> <span>Nguyen</span></h1>
+      <div class="scroll">
+        <svg viewBox="0 0 100 100"><defs><path id="circ" d="M50,50 m-34,0 a34,34 0 1,1 68,0 a34,34 0 1,1 -68,0"/></defs>
+          <text><textPath href="#circ" startOffset="0%">SCROLL TO EXPLORE · SCROLL TO EXPLORE · </textPath></text></svg>
+        <span class="dot"></span>
+      </div>
+    </div>
+    <div class="menu-overlay"><div class="menu-close"></div><a href="#work">Work</a><a href="#thoughts">Thoughts</a><a href="#about">About Me</a></div>
+  </div>
+
+  <script id="vert" type="x-shader/x-vertex">
+    attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }
+  </script>
+  <script id="frag" type="x-shader/x-fragment">
+    precision highp float;
+    uniform vec2  uRes;      // device px
+    uniform float uT;        // seconds
+    uniform vec2  uCenter;   // circle centre, device px, y from BOTTOM
+    uniform float uRadius;   // device px
+    uniform float uReduced;  // 1.0 = freeze motion
+    uniform float uMobile;   // 1.0 = portrait/mobile composition
+
+    // ---- low-frequency value noise ----
+    float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+    float vnoise(vec2 p){
+      vec2 i = floor(p), f = fract(p);
+      float a = hash(i), b = hash(i+vec2(1.,0.)), c = hash(i+vec2(0.,1.)), d = hash(i+vec2(1.,1.));
+      vec2 u = f*f*(3.-2.*f);
+      return mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
+    }
+    // ONE or two very low-frequency layers only — used to bend ribbons, never as visible texture
+    float fbm(vec2 p){ float v = 0.6*vnoise(p); v += 0.4*vnoise(p*2.0 + 4.0); return v; }
+
+    // earth-tone palette
+    const vec3 NB    = vec3(0.027,0.031,0.024); // #070806 near-black
+    const vec3 WB    = vec3(0.063,0.051,0.031); // #100D08 warm-black base
+    const vec3 OLIVE = vec3(0.176,0.188,0.110); // #2D301C
+    const vec3 MOSS  = vec3(0.278,0.278,0.161); // #474729
+    const vec3 OCHRE = vec3(0.596,0.439,0.196); // #987032
+    const vec3 GOLD  = vec3(0.678,0.522,0.239); // #AD853D
+    const vec3 BRONZE= vec3(0.439,0.290,0.133); // #704A22
+    const vec3 AMBER = vec3(0.286,0.188,0.098); // #493019
+    const vec3 TEAL  = vec3(0.078,0.153,0.141); // #142724 smoky shadow tone
+
+    // ===== ONE shared procedural field. p is in field space. =====
+    // The colour is built from 2–3 broad, smooth, directional RIBBONS over a
+    // mostly near-black base. No radial blobs, no high-freq noise.
+    vec3 field(vec2 p){
+      float t = uReduced > 0.5 ? 20.0 : uT;
+      vec2 drift = vec2(t*0.010, -t*0.006);          // slow L->R, slightly up (~33s feel)
+      float curve = sin(t*0.1208);                   // secondary curvature ~52s
+      // ONE low-frequency warp layer bends the ribbons so they curve, not stripe
+      vec2 w = vec2(fbm(p*0.55 + drift + curve*0.30),
+                    fbm(p*0.55 + drift*0.6 + 9.0)) - 0.5;
+      vec2 q = p + w * 0.95;
+
+      // directional ribbon coordinate (lower-left -> upper-right)
+      float s = dot(q, normalize(vec2(0.80, 1.0)));
+
+      // warm ribbon (its EDGE crosses the circle) and olive ribbon (lower-left) as smooth bands.
+      // On portrait the cropped circle sits at a lower s, so shift/widen the warm band to read through it.
+      float warmC = mix(1.78, 1.30, uMobile);
+      float warmW = 0.46 + uMobile * 0.12;
+      float warm  = smoothstep(warmW, 0.0, abs(s - warmC));
+      float olive = smoothstep(0.55, 0.0, abs(s - 0.35));
+
+      vec3 col = WB;                                  // warm-black canvas
+      // olive / moss ribbon
+      col = mix(col, OLIVE, olive);
+      col = mix(col, MOSS,  smoothstep(0.45, 1.0, olive) * 0.55);
+      // warm ribbon: amber edges -> bronze -> ochre -> thin gold core (light AND dark within it)
+      col = mix(col, AMBER,  smoothstep(0.00, 0.55, warm) * 0.85);
+      col = mix(col, BRONZE, smoothstep(0.30, 0.78, warm));
+      col = mix(col, OCHRE,  smoothstep(0.62, 0.94, warm));
+      col = mix(col, GOLD,   smoothstep(0.86, 1.00, warm) * 0.9);
+      // gaps between ribbons: smoky-teal shadow tone, then crush toward near-black (mostly dark)
+      float gap = (1.0 - warm) * (1.0 - olive);
+      col = mix(col, TEAL, gap * 0.10);
+      col = mix(col, NB,   gap * (0.55 - uMobile * 0.10));  // a touch more atmosphere on mobile
+      return col;
+    }
+
+    void main(){
+      vec2 frag = gl_FragCoord.xy;
+      float aspect = uRes.x / uRes.y;
+      vec2 uv = frag / uRes;                          // 0..1, y from bottom
+      float scale = 1.40;
+      vec2 P  = vec2(uv.x*aspect, uv.y) * scale;      // field space
+      vec2 cP = vec2((uCenter.x/uRes.x)*aspect, uCenter.y/uRes.y) * scale;
+
+      // ===== circle = a region where the SHARED field's UVs are optically transformed =====
+      float r    = distance(frag, uCenter) / uRadius; // 0 centre .. 1 edge .. >1 outside
+      float prof = 1.0 - smoothstep(0.0, 1.0, r);     // 1 centre -> 0 at edge & beyond (magnify weight)
+      float ring = smoothstep(0.12, 0.82, r) * (1.0 - smoothstep(0.82, 1.0, r)); // peaks near the edge
+      float fR   = (uRadius / uRes.y) * scale;        // circle radius in field space
+      vec2  rel  = P - cP;
+      vec2  tang = normalize(vec2(-rel.y, rel.x) + 1e-6);
+      float k    = 1.0 - 0.17 * prof;                 // magnify (sample smaller area inside)
+      vec2  Pt   = cP + rel * k + tang * fR * 0.24 * ring;  // ribbons bend & travel AROUND the edge
+                                                            // (==P outside: prof=ring=0, fully seamless)
+      vec3 col = field(Pt);
+
+      // a whisper more local contrast inside the lens (same field, no brightness halo)
+      float inside = 1.0 - smoothstep(0.97, 1.0, r);
+      col = mix(col, clamp((col - 0.5) * 1.12 + 0.5, 0.0, 1.0), inside * 0.20);
+
+      // gentle dark calm behind the centred headline (soft, not an oval spotlight)
+      float hd = distance(vec2(uv.x*aspect, uv.y), vec2(0.5*aspect, 0.54));
+      col *= mix(0.74, 1.0, smoothstep(0.06, 0.46, hd));
+
+      // soft global vignette
+      col *= 1.0 - 0.30 * smoothstep(0.58, 1.15, distance(uv, vec2(0.5)) * 1.35);
+
+      // dither to kill banding
+      col += (hash(frag + uT) - 0.5) / 255.0;
+
+      gl_FragColor = vec4(max(col, 0.0), 1.0);
+    }
+  </script>
+
+  <script>
+    const body = document.body;
+    document.querySelector('.menu-btn').addEventListener('click', () => body.classList.add('menu-open'));
+    document.querySelector('.menu-close').addEventListener('click', () => body.classList.remove('menu-open'));
+    document.querySelectorAll('.menu-overlay a').forEach(a => a.addEventListener('click', () => body.classList.remove('menu-open')));
+
+    const cv = document.getElementById('gl');
+    const gl = cv.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function sh(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+      if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s)); return s; }
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, document.getElementById('vert').textContent));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, document.getElementById('frag').textContent));
+    gl.linkProgram(prog); gl.useProgram(prog);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    const U = n => gl.getUniformLocation(prog, n);
+    const uRes=U('uRes'), uT=U('uT'), uCenter=U('uCenter'), uRadius=U('uRadius'), uReduced=U('uReduced'), uMobile=U('uMobile');
+    gl.uniform1f(uReduced, reduced ? 1.0 : 0.0);
+
+    let dpr = 1;
+    function resize(){
+      const W = cv.clientWidth, H = cv.clientHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, W <= 640 ? 1.5 : 2);
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      gl.viewport(0,0,cv.width,cv.height);
+      gl.uniform2f(uRes, cv.width, cv.height);
+      // circle placement (matches the validated CSS proportions)
+      let D, rightBeyond, topBeyond;
+      if (W <= 640){ D = (W<=360?0.76:0.80)*W; rightBeyond = 0.10*W; topBeyond = (W<=360?0.15:0.16)*H; }
+      else { D = Math.min(Math.max(580, 0.44*W), 760); rightBeyond = 0.07*W; topBeyond = 0.08*H; }
+      const cx   = W + rightBeyond - D/2;     // from left (css px)
+      const cyTop= -topBeyond + D/2;          // from top  (css px)
+      gl.uniform2f(uCenter, cx*dpr, (H - cyTop)*dpr);   // y flipped to bottom-origin
+      gl.uniform1f(uRadius, (D/2)*dpr);
+      gl.uniform1f(uMobile, W <= 640 ? 1.0 : 0.0);
+    }
+    window.addEventListener('resize', resize); resize();
+
+    const start = performance.now();
+    function frame(now){
+      gl.uniform1f(uT, (now - start) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!reduced) requestAnimationFrame(frame);
+    }
+    if (reduced){ gl.uniform1f(uT, 18.0); gl.drawArrays(gl.TRIANGLES,0,3); }
+    else requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
