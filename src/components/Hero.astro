@@ -106,3 +106,15 @@
     .headline { white-space: normal; display: flex; flex-direction: column; align-items: center; line-height: 0.95; }
   }
 </style>
+
+<script>
+  const body = document.body;
+  const overlay = document.querySelector('.menu-overlay');
+  overlay?.removeAttribute('hidden');
+  const open = () => body.classList.add('menu-open');
+  const close = () => body.classList.remove('menu-open');
+  document.querySelector('.menu-btn')?.addEventListener('click', open);
+  document.querySelector('.menu-close')?.addEventListener('click', close);
+  overlay?.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+</script>
