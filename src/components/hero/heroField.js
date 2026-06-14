@@ -60,13 +60,25 @@ const FRAG = `
       vec2 q = p + w1 * 0.95 + w2 * 0.35;
 
       // directional ribbon coordinate (lower-left -> upper-right)
-      float signedDistance = dot(q, ribbonNormal);
+      float signedDistance = dot(q, ribbonNormal);   // measures ACROSS the ribbon — compared against warmC
+      float alongRibbon    = dot(q, ribbonTangent);  // position ALONG the ribbon — wave phase varies with this
 
-      // warm ribbon (its EDGE crosses the circle) and olive ribbon (lower-left) as smooth bands.
+      // warm ribbon (its centreline undulates) and olive ribbon (lower-left) as smooth bands.
       // On portrait the cropped circle sits at a lower signedDistance, so shift/widen the warm band to read through it.
       float warmC = mix(1.78, 1.30, uMobile);
       float warmW = 0.46 + uMobile * 0.12;
-      float warm  = smoothstep(warmW, 0.0, abs(signedDistance - warmC));
+
+      // layered traveling waves perturb the warm ribbon's centreline — organic, never a single sine stripe
+      float wave =
+          sin(alongRibbon * 1.4 + t * 0.9) * 0.65 +
+          sin(alongRibbon * 2.6 - t * 1.6 + 1.3) * 0.35;
+      float waveAmp = 0.16 + 0.10 * w2.x;            // noise-modulated amplitude breaks regularity
+
+      float warm = 1.0 - smoothstep(
+          0.0,
+          warmW * (1.0 + 0.15 * w2.y),                // width also wobbles with noise
+          abs(signedDistance - warmC - wave * waveAmp)
+      );
       float olive = 1.0 - smoothstep(0.0, 0.55, abs(signedDistance - 0.35));
 
       vec3 col = WB;                                  // warm-black canvas
