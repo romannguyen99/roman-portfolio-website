@@ -49,10 +49,15 @@ const FRAG = `
       float t = uReduced > 0.5 ? 20.0 : uT;
       vec2 drift = vec2(t*0.018, -t*0.011);          // L->R, slightly up (~18s sweep)
       float curve = sin(t*0.20);                     // secondary curvature ~31s
-      // ONE low-frequency warp layer bends the ribbons so they curve, not stripe
-      vec2 w = vec2(fbm(p*0.55 + drift + curve*0.30),
-                    fbm(p*0.55 + drift*0.6 + 9.0)) - 0.5;
-      vec2 q = p + w * 0.95;
+      // Layer 1: low-frequency domain warp bends the ribbons so they curve, not stripe
+      vec2 w1 = vec2(fbm(p*0.55 + drift + curve*0.30),
+                     fbm(p*0.55 + drift*0.6 + 9.0)) - 0.5;
+      // Layer 2: single-octave noise layer adds organic, irregular flow
+      vec2 w2 = vec2(
+        vnoise(p*1.6 - drift*0.6  + 5.0),
+        vnoise(p*1.6 + drift*0.36 + 21.0)
+      ) - 0.5;
+      vec2 q = p + w1 * 0.95 + w2 * 0.35;
 
       // directional ribbon coordinate (lower-left -> upper-right)
       float signedDistance = dot(q, ribbonNormal);
