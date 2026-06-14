@@ -47,3 +47,24 @@ test('headline becomes visible after load', async ({ page }) => {
   await expect(page.locator('.hero')).toHaveClass(/is-loaded/);
   await expect(page.locator('.headline')).toHaveCSS('opacity', '1');
 });
+
+test('headline rises into place on load (starts below its final position)', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero')).toHaveClass(/is-loaded/);
+  const { initialTop, loadedTop } = await page.evaluate(() => {
+    const hero = document.querySelector('.hero') as HTMLElement;
+    const h = document.querySelector('.headline') as HTMLElement;
+    h.style.transition = 'none';            // measure target positions, not mid-animation
+    hero.classList.remove('is-loaded');
+    void h.offsetHeight;                    // force reflow
+    const initialTop = h.getBoundingClientRect().top;
+    hero.classList.add('is-loaded');
+    void h.offsetHeight;
+    const loadedTop = h.getBoundingClientRect().top;
+    h.style.transition = '';
+    return { initialTop, loadedTop };
+  });
+  // the initial (pre-load) state must sit ~16px lower than the loaded state;
+  // if the base rule overrides the offset, these are equal and this fails.
+  expect(initialTop).toBeGreaterThan(loadedTop + 8);
+});
