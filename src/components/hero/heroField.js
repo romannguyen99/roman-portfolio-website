@@ -37,6 +37,11 @@ const FRAG = `
     const vec3 AMBER = vec3(0.286,0.188,0.098); // #493019
     const vec3 TEAL  = vec3(0.078,0.153,0.141); // #142724 smoky shadow tone
 
+    // ribbon axis: ribbonNormal measures ACROSS the ribbon, ribbonTangent runs ALONG it.
+    // Precomputed literals (GLSL ES 1.00 does not guarantee normalize() in a const initializer).
+    const vec2 ribbonNormal  = vec2(0.6247, 0.7809);  // normalize(vec2(0.80, 1.0))
+    const vec2 ribbonTangent = vec2(-ribbonNormal.y, ribbonNormal.x);
+
     // ===== ONE shared procedural field. p is in field space. =====
     // The colour is built from 2–3 broad, smooth, directional RIBBONS over a
     // mostly near-black base. No radial blobs, no high-freq noise.
@@ -50,14 +55,14 @@ const FRAG = `
       vec2 q = p + w * 0.95;
 
       // directional ribbon coordinate (lower-left -> upper-right)
-      float s = dot(q, normalize(vec2(0.80, 1.0)));
+      float signedDistance = dot(q, ribbonNormal);
 
       // warm ribbon (its EDGE crosses the circle) and olive ribbon (lower-left) as smooth bands.
-      // On portrait the cropped circle sits at a lower s, so shift/widen the warm band to read through it.
+      // On portrait the cropped circle sits at a lower signedDistance, so shift/widen the warm band to read through it.
       float warmC = mix(1.78, 1.30, uMobile);
       float warmW = 0.46 + uMobile * 0.12;
-      float warm  = smoothstep(warmW, 0.0, abs(s - warmC));
-      float olive = smoothstep(0.55, 0.0, abs(s - 0.35));
+      float warm  = smoothstep(warmW, 0.0, abs(signedDistance - warmC));
+      float olive = 1.0 - smoothstep(0.0, 0.55, abs(signedDistance - 0.35));
 
       vec3 col = WB;                                  // warm-black canvas
       // olive / moss ribbon
