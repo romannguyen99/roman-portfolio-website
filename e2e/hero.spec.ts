@@ -41,3 +41,9 @@ test('canvas is sized and shader compiles without console errors', async ({ page
   expect(size.h).toBeGreaterThan(0);
   expect(errors).toEqual([]); // no GLSL compile / runtime errors
 });
+
+test('headline becomes visible after load', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero')).toHaveClass(/is-loaded/);
+  await expect(page.locator('.headline')).toHaveCSS('opacity', '1');
+});
