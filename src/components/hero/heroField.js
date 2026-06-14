@@ -106,15 +106,28 @@ const FRAG = `
       vec2 cP = vec2((uCenter.x/uRes.x)*aspect, uCenter.y/uRes.y) * scale;
 
       // ===== circle = a region where the SHARED field's UVs are optically transformed =====
+      const float IOR         = 1.42;          // glass index of refraction (range 1.3-1.5). Higher IOR = stronger bending.
+      const float ETA         = 1.0 / IOR;      // refract() ratio, derived from IOR. Lower ETA = stronger bending.
+      const float DEPTH_SCALE = 0.60;           // starting value; reduce first if a compressed annulus appears near the rim.
+
       float r    = distance(frag, uCenter) / uRadius; // 0 centre .. 1 edge .. >1 outside
-      float prof = 1.0 - smoothstep(0.0, 1.0, r);     // 1 centre -> 0 at edge & beyond (magnify weight)
-      float ring = smoothstep(0.12, 0.82, r) * (1.0 - smoothstep(0.82, 1.0, r)); // peaks near the edge
       float fR   = (uRadius / uRes.y) * scale;        // circle radius in field space
       vec2  rel  = P - cP;
       vec2  tang = normalize(vec2(-rel.y, rel.x) + 1e-6);
-      float k    = 1.0 - 0.17 * prof;                 // magnify (sample smaller area inside)
-      vec2  Pt   = cP + rel * k + tang * fR * 0.24 * ring;  // ribbons bend & travel AROUND the edge
-                                                            // (==P outside: prof=ring=0, fully seamless)
+
+      // sphere-refraction "glass ball" UV remap: central magnification, bending toward the edge
+      vec3  N            = normalize(vec3(rel / fR, sqrt(max(1.0 - r*r, 0.0)))); // hemisphere normal
+      vec3  Rf           = refract(vec3(0.0, 0.0, -1.0), N, ETA);
+      vec2  radialOffset = Rf.xy * fR * DEPTH_SCALE;
+
+      // edge falloff: seamless at r=1, but the lens still "hugs" the rim
+      float edge = 1.0 - smoothstep(0.84, 1.0, r);
+
+      // outer-band tangential flow: subtle "around the rim" accent only, refraction dominates
+      float tangWeight  = smoothstep(0.45, 0.85, r);
+      vec2  totalOffset = (radialOffset + tang * fR * 0.08 * tangWeight) * edge;
+
+      vec2  Pt = cP + rel + totalOffset;  // ==P outside r=1: offset -> 0, fully seamless
       vec3 col = field(Pt);
 
       // a whisper more local contrast inside the lens (same field, no brightness halo)
