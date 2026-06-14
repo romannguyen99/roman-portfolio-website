@@ -43,10 +43,19 @@ For a point inside the circle, with `r = dist(frag, uCenter) / uRadius ∈ [0,1]
 and `rel = P - cP` (field-space offset from the circle's field-space center):
 
 ```glsl
+const float IOR         = 1.42;          // glass index of refraction. range 1.3–1.5. HIGHER IOR = stronger bending.
+const float ETA         = 1.0 / IOR;      // refract() ratio, derived from IOR. LOWER ETA = stronger bending.
+const float DEPTH_SCALE = 0.60;           // starting value. Treat 0.9 as an upper experiment, not a default.
+
 vec3 N  = normalize(vec3(rel / fR, sqrt(max(1.0 - r*r, 0.0))));  // hemisphere normal
-vec3 Rf = refract(vec3(0.0, 0.0, -1.0), N, ETA);                  // ETA = 1.0/IOR, IOR ~1.45 (range 1.3–1.5)
-vec2 radialOffset = Rf.xy * fR * DEPTH_SCALE;                     // DEPTH_SCALE starting ~0.9
+vec3 Rf = refract(vec3(0.0, 0.0, -1.0), N, ETA);
+vec2 radialOffset = Rf.xy * fR * DEPTH_SCALE;
 ```
+
+`IOR` and `ETA` are inversely related — define `IOR` as the tunable
+constant and derive `ETA` from it. Do not set `ETA` itself to a value in
+1.3–1.5; that would produce *weaker* bending than intended (ETA stays
+< 1 for all realistic glass IORs).
 
 This is the standard "glass sphere" UV-remap technique. Near `r = 0`, `N`
 is close to `(0,0,1)` and the remap is close to a uniform scale change
@@ -59,8 +68,16 @@ character, the bending is the edge's character.)
 ### Edge falloff — seamless but "hugging"
 
 ```glsl
-float edge = 1.0 - smoothstep(0.90, 1.0, r);   // narrower than the original 0.82–1.0 band
+float edge = 1.0 - smoothstep(0.84, 1.0, r);   // start conservative — see note below
 ```
+
+Start with a **wide** falloff band (`0.84–1.0`), not the narrow `0.90–1.0`
+considered earlier. By `r ≈ 0.90`, `radialOffset` is already substantial; if
+`edge` only ramps down over the last 10% of the radius, the offset gets
+forced back to zero too quickly and produces a visibly compressed annulus
+near the rim. A wider band gives the offset more room to ease out smoothly.
+Narrow the band later only if, after tuning `DEPTH_SCALE`, the lens still
+doesn't feel like it's bending "all the way to the edge."
 
 **`edge` must scale the entire offset (radial + tangential), not just the
 tangential part.** At `r = 1`, `N` becomes purely in-plane and `Rf.xy` is
@@ -84,6 +101,30 @@ vec2  Pt = cP + rel + totalOffset;
 refraction term must dominate everywhere; the tangential term is a subtle
 "flow travels around the rim" accent only.
 
+### Fallback if a rotational read remains
+
+`tang` above is a uniform circulation — constant magnitude all the way
+around the circle, all pointing the same rotational sense. Even at low
+strength this can read as a faint spin. If verification still shows any
+spin/vortex read, replace the tangential offset with one **projected onto the
+ribbon's flow direction** instead of a fixed rotational sense:
+
+```glsl
+// ribbonTangent: same constant used by the centerline undulation in §2 —
+// declare it once, shader-global, so both main() and field() can use it.
+float tangentAlignment  = dot(ribbonTangent, tang);
+vec2  tangentialOffset  = tang * tangentAlignment * fR * 0.08 * tangWeight;
+vec2  totalOffset       = (radialOffset + tangentialOffset) * edge;
+```
+
+`tangentAlignment` is `cos(θ)` between the local circle-tangent direction and
+the ribbon's (fixed) flow direction — it flips sign on opposite sides of the
+circle, so `tangentialOffset` ends up pointing in a roughly consistent
+*flow-aligned* direction (varying in magnitude, peaking where the two
+directions align and vanishing where they're perpendicular) rather than
+circulating uniformly. This reads as "the lens deflects the flow passing
+through it" rather than "the lens is spinning."
+
 ### Implementation verification (do these explicitly, before tuning further)
 
 1. **Direction check.** Confirm `radialOffset` bends sampling *inward*
@@ -91,12 +132,14 @@ refraction term must dominate everywhere; the tangential term is a subtle
    through the lens). If the lens instead appears to shrink/push the field
    outward (zoom-out), **invert `radialOffset`** (negate `Rf.xy`, or flip the
    sign convention on the incident vector / `ETA`).
-2. **Monotonicity check near the rim.** The mapping from screen radius `r` to
-   sample radius must stay monotonic across `r ∈ [0,1]`. If a compressed or
-   "pinched" ring appears near the edge, **reduce `DEPTH_SCALE` first**, and
-   if needed **widen the edge falloff band** (e.g. `smoothstep(0.85, 1.0, r)`)
-   to give the remap more room to ease back to identity. Do not paper over
-   pinching with blur or a decorative rim.
+2. **Monotonicity and smoothness check near the rim.** The mapping from
+   screen radius `r` to sample radius must stay monotonic across
+   `r ∈ [0,1]`, *and* its radial derivative must change smoothly enough to
+   avoid a compressed or stretched annulus near the edge. If either fails,
+   **reduce `DEPTH_SCALE` first** (down from `0.60`), and if needed **widen
+   the edge falloff band** further (e.g. `smoothstep(0.78, 1.0, r)`) to give
+   the remap more room to ease back to identity. Do not paper over a
+   compressed annulus with blur or a decorative rim.
 3. Visually confirm: no vortex/spin read, no visible seam at `r = 1`, no
    highlight/glow anywhere in the lens.
 
@@ -137,12 +180,20 @@ the "modest increase" budget.
 
 ### Centerline undulation
 
-Geometry, named by role (so the wave is applied along the correct axis):
+Geometry, named by role (so the wave is applied along the correct axis).
+**Declare `ribbonNormal`/`ribbonTangent` as shader-global constants** (e.g.
+alongside the palette constants) — both `field()` (for this undulation) and
+`main()`'s lens fallback (§1) reference `ribbonTangent`:
 
 ```glsl
-vec2  ribbonNormal  = normalize(vec2(0.80, 1.0));            // same as today's ribbon axis
-vec2  ribbonTangent = vec2(-ribbonNormal.y, ribbonNormal.x); // perpendicular — runs along the ribbon's length
+const vec2 ribbonNormal  = vec2(0.6247, 0.7809);  // normalize(vec2(0.80, 1.0)) — same as today's ribbon axis
+const vec2 ribbonTangent = vec2(-ribbonNormal.y, ribbonNormal.x); // perpendicular — runs along the ribbon's length
+```
 
+(Precomputed as a literal — GLSL ES 1.00 does not guarantee `normalize()` is
+valid in a `const` initializer.)
+
+```glsl
 float signedDistance = dot(q, ribbonNormal);   // measures ACROSS the ribbon — compared against warmC
 float alongRibbon    = dot(q, ribbonTangent);  // position ALONG the ribbon — wave phase varies with this
 
@@ -152,9 +203,9 @@ float wave =
 
 float waveAmp = 0.16 + 0.10 * w2.x;   // noise-modulated amplitude — breaks regularity
 
-float warm = smoothstep(
-    warmW * (1.0 + 0.15 * w2.y),      // width also gets a subtle noise-modulated wobble
+float warm = 1.0 - smoothstep(
     0.0,
+    warmW * (1.0 + 0.15 * w2.y),      // width also gets a subtle noise-modulated wobble
     abs(signedDistance - warmC - wave * waveAmp)
 );
 ```
@@ -164,6 +215,27 @@ position *across* the ribbon and is compared against `warmC`. `alongRibbon`
 (formerly `across`) is purely a phase input for the waves — position *along*
 the ribbon's length. The wave perturbs where the ribbon's centerline sits
 (`signedDistance - warmC - wave*waveAmp`), not the color directly.
+
+Note the `warm` formula is written as `1.0 - smoothstep(0.0, width, dist)`
+rather than `smoothstep(width, 0.0, dist)`. Per the GLSL spec, `smoothstep`
+with `edge0 >= edge1` is undefined — the `1 - smoothstep(0, width, x)` form
+is equivalent for the increasing case and portable across drivers. See the
+incidental fix below for the pre-existing `olive` calculation, which has the
+same issue.
+
+### Incidental portability fix: `olive`
+
+The existing `olive` calculation has the same reversed-edge issue:
+
+```glsl
+// before
+float olive = smoothstep(0.55, 0.0, abs(s - 0.35));
+// after (s renamed to signedDistance per the rename above)
+float olive = 1.0 - smoothstep(0.0, 0.55, abs(signedDistance - 0.35));
+```
+
+Same value for the normal case, portable form. Apply this while touching
+`field()` for the rest of this spec — no separate pass needed.
 
 ### Anti-"decorative stripe" constraints
 
@@ -207,10 +279,10 @@ as an emergent property of the shared field.
 
 | Constant | Starting value | Tune toward if... |
 |---|---|---|
-| `ETA` | `1.0/1.45` | range 1.3–1.5; higher = more bending |
-| `DEPTH_SCALE` | `0.9` | reduce if pinching/non-monotonic near rim |
-| Edge falloff band | `smoothstep(0.90, 1.0, r)` | widen toward `0.85` if pinching persists after reducing `DEPTH_SCALE` |
-| Tangential weight band | `smoothstep(0.45, 0.85, r)` | narrow further if any spin read remains |
+| `IOR` (`ETA = 1/IOR`) | `1.42` | range 1.3–1.5; higher IOR = stronger bending. Don't set `ETA` itself to 1.3–1.5. |
+| `DEPTH_SCALE` | `0.60` | treat `0.9` as an upper experiment; reduce further if a compressed/stretched annulus appears near the rim |
+| Edge falloff band | `smoothstep(0.84, 1.0, r)` | widen toward `0.78` if the annulus persists after reducing `DEPTH_SCALE`; narrow only if the lens doesn't feel like it bends all the way to the edge |
+| Tangential weight band | `smoothstep(0.45, 0.85, r)` | narrow further if any spin read remains; if it persists, switch to the flow-aligned fallback (project onto `ribbonTangent`) |
 | Tangential magnitude | `0.08 * fR` | — |
 | Macro drift | `vec2(0.018, -0.011)` | — |
 | Shape evolution rate | `0.20` | — |
