@@ -31,8 +31,9 @@ it into the Astro structure — do not redesign it. The production WebGL island 
 ## Tech stack & architecture
 
 - **Astro** — static site generation, near-zero JS on content sections.
-- **Three.js as a hydrated island** for the hero canvas only (`client:load` or `client:visible`).
-  The hero is one full-screen WebGL canvas running the shared-field fragment shader.
+- **Raw WebGL** for the hero canvas (one full-screen fragment shader — Three.js is unnecessary for
+  a single fullscreen pass). The WebGL module is loaded via Astro's default module `<script>`, which
+  hydrates on the client. (The validated reference uses raw WebGL; this supersedes the earlier note.)
 - **Vanilla CSS** (or lightweight CSS modules / scoped `<style>`), no UI framework. Match the
   reference's hand-written CSS.
 - **Vite** (built into Astro) for bundling. **Google Fonts** for Space Grotesk (self-host later
