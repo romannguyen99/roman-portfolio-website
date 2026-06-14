@@ -47,8 +47,8 @@ const FRAG = `
     // mostly near-black base. No radial blobs, no high-freq noise.
     vec3 field(vec2 p){
       float t = uReduced > 0.5 ? 20.0 : uT;
-      vec2 drift = vec2(t*0.010, -t*0.006);          // slow L->R, slightly up (~33s feel)
-      float curve = sin(t*0.1208);                   // secondary curvature ~52s
+      vec2 drift = vec2(t*0.018, -t*0.011);          // L->R, slightly up (~18s sweep)
+      float curve = sin(t*0.20);                     // secondary curvature ~31s
       // ONE low-frequency warp layer bends the ribbons so they curve, not stripe
       vec2 w = vec2(fbm(p*0.55 + drift + curve*0.30),
                     fbm(p*0.55 + drift*0.6 + 9.0)) - 0.5;
