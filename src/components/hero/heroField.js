@@ -40,7 +40,7 @@ const FRAG = `
     // ribbon axis: ribbonNormal measures ACROSS the ribbon, ribbonTangent runs ALONG it.
     // Precomputed literals (GLSL ES 1.00 does not guarantee normalize() in a const initializer).
     const vec2 ribbonNormal  = vec2(0.6247, 0.7809);  // normalize(vec2(0.80, 1.0))
-    const vec2 ribbonTangent = vec2(-ribbonNormal.y, ribbonNormal.x);
+    const vec2 ribbonTangent = vec2(-0.7809, 0.6247);   // perpendicular to ribbonNormal
 
     // ===== ONE shared procedural field. p is in field space. =====
     // The colour is built from 2–3 broad, smooth, directional RIBBONS over a
