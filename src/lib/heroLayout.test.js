@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeCircleLayout, capDpr, isMobile, computeFieldFraming, FIELD_SCALE } from './heroLayout.js';
+import { computeCircleLayout, capDpr, isMobile, computeFieldFraming, FIELD_SCALE, FOCAL_Y } from './heroLayout.js';
 
 describe('computeCircleLayout', () => {
   it('desktop 1440x900: clamped diameter, cropped top/right', () => {
@@ -43,8 +43,6 @@ describe('isMobile', () => {
 });
 
 describe('computeFieldFraming', () => {
-  const FOCAL_Y = 0.54; // must match the constant in heroLayout.js / the dark pocket
-
   it('identity at the reference aspect 1.6 (1440x900): m=1, Oy=0', () => {
     const { m, Oy } = computeFieldFraming(1440, 900);
     expect(m).toBeCloseTo(1, 6);
@@ -57,10 +55,11 @@ describe('computeFieldFraming', () => {
     expect(Oy).toBe(0);
   });
 
-  it('zooms in on wide windows (2560x1080): m = A0/aspect, < 1', () => {
-    const { m } = computeFieldFraming(2560, 1080);
+  it('zooms in on wide windows (2560x1080): m = A0/aspect, < 1, Oy > 0', () => {
+    const { m, Oy } = computeFieldFraming(2560, 1080);
     expect(m).toBeCloseTo(1.6 / (2560 / 1080), 6); // ≈ 0.675
     expect(m).toBeLessThan(1);
+    expect(Oy).toBeGreaterThan(0);
   });
 
   it("pins the headline field-row across aspects: FOCAL_Y*scale*m + Oy === FOCAL_Y*scale", () => {

@@ -29,8 +29,8 @@ export function isMobile(W) {
 export const FIELD_SCALE = 1.40; // vertical field extent shown at the reference aspect
 
 const A0 = 1.60;       // reference aspect the look was validated at (1440×900)
-const MAX_ZOOM = 1.55; // cap zoom so super-ultrawide doesn't over-crop the ribbon
-const FOCAL_Y = 0.54;  // anchor the vertical crop on the headline row (matches the dark pocket)
+const MAX_ZOOM = 1.55; // m floor = 1/MAX_ZOOM; caps zoom-in so super-ultrawide doesn't over-crop the ribbon
+export const FOCAL_Y = 0.54; // anchor the vertical crop on the headline row (matches the dark pocket)
 
 // Cover-fit framing. Identity at/below A0 (m=1, Oy=0 -> current look unchanged); on wider
 // windows m<1 zooms the field in so the ribbon stays framed instead of revealing empty dark,
