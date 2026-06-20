@@ -68,3 +68,18 @@ test('headline rises into place on load (starts below its final position)', asyn
   // if the base rule overrides the offset, these are equal and this fails.
   expect(initialTop).toBeGreaterThan(loadedTop + 8);
 });
+
+test('no horizontal overflow across the size sweep', async ({ page }) => {
+  const sizes: [number, number][] = [
+    [2560, 1080], [1920, 1080], [1512, 712], [1440, 900],
+    [768, 1024], [390, 844], [360, 640],
+  ];
+  for (const [w, h] of sizes) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto('/');
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
+    expect(overflow, `horizontal overflow at ${w}x${h}`).toBe(false);
+  }
+});
