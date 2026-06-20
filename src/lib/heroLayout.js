@@ -23,3 +23,22 @@ export function capDpr(dpr, W) {
 export function isMobile(W) {
   return W <= 640;
 }
+
+// ---- Field framing (cover-fit across aspect ratios) ----
+// Shared with the shader via the uFpp/uOy uniforms set in resize().
+export const FIELD_SCALE = 1.40; // vertical field extent shown at the reference aspect
+
+const A0 = 1.60;       // reference aspect the look was validated at (1440×900)
+const MAX_ZOOM = 1.55; // cap zoom so super-ultrawide doesn't over-crop the ribbon
+const FOCAL_Y = 0.54;  // anchor the vertical crop on the headline row (matches the dark pocket)
+
+// Cover-fit framing. Identity at/below A0 (m=1, Oy=0 -> current look unchanged); on wider
+// windows m<1 zooms the field in so the ribbon stays framed instead of revealing empty dark,
+// cropping a sliver of the abstract field top/bottom. Oy keeps the headline's field-row fixed.
+// fpp itself is derived in resize() from device-pixel height: fpp = (FIELD_SCALE / heightPx) * m.
+export function computeFieldFraming(W, H) {
+  const aspect = W / H;
+  const m = Math.min(Math.max(A0 / aspect, 1 / MAX_ZOOM), 1);
+  const Oy = FOCAL_Y * FIELD_SCALE * (1 - m);
+  return { m, Oy };
+}

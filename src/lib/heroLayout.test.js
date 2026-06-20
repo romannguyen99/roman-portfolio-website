@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeCircleLayout, capDpr, isMobile } from './heroLayout.js';
+import { computeCircleLayout, capDpr, isMobile, computeFieldFraming, FIELD_SCALE } from './heroLayout.js';
 
 describe('computeCircleLayout', () => {
   it('desktop 1440x900: clamped diameter, cropped top/right', () => {
@@ -39,5 +39,51 @@ describe('isMobile', () => {
   it('boundary at 640', () => {
     expect(isMobile(640)).toBe(true);
     expect(isMobile(641)).toBe(false);
+  });
+});
+
+describe('computeFieldFraming', () => {
+  const FOCAL_Y = 0.54; // must match the constant in heroLayout.js / the dark pocket
+
+  it('identity at the reference aspect 1.6 (1440x900): m=1, Oy=0', () => {
+    const { m, Oy } = computeFieldFraming(1440, 900);
+    expect(m).toBeCloseTo(1, 6);
+    expect(Oy).toBeCloseTo(0, 6);
+  });
+
+  it('identity for any aspect <= 1.6 (portrait 768x1024): no zoom, no crop', () => {
+    const { m, Oy } = computeFieldFraming(768, 1024);
+    expect(m).toBe(1);
+    expect(Oy).toBe(0);
+  });
+
+  it('zooms in on wide windows (2560x1080): m = A0/aspect, < 1', () => {
+    const { m } = computeFieldFraming(2560, 1080);
+    expect(m).toBeCloseTo(1.6 / (2560 / 1080), 6); // ≈ 0.675
+    expect(m).toBeLessThan(1);
+  });
+
+  it("pins the headline field-row across aspects: FOCAL_Y*scale*m + Oy === FOCAL_Y*scale", () => {
+    for (const [W, H] of [[1440, 900], [1920, 1080], [2560, 1080], [1512, 712]]) {
+      const { m, Oy } = computeFieldFraming(W, H);
+      expect(FOCAL_Y * FIELD_SCALE * m + Oy).toBeCloseTo(FOCAL_Y * FIELD_SCALE, 6);
+    }
+  });
+
+  it('caps the zoom at 1/MAX_ZOOM on extreme ultrawide (3840x1080)', () => {
+    const { m } = computeFieldFraming(3840, 1080); // aspect ≈ 3.56 > 2.48 cap threshold
+    expect(m).toBeCloseTo(1 / 1.55, 6); // ≈ 0.645 floor
+  });
+
+  it('m is monotonic non-increasing as aspect grows', () => {
+    const aspects = [1.0, 1.6, 1.78, 2.12, 2.37, 3.0];
+    const ms = aspects.map((a) => computeFieldFraming(a * 1000, 1000).m);
+    for (let i = 1; i < ms.length; i++) {
+      expect(ms[i]).toBeLessThanOrEqual(ms[i - 1] + 1e-9);
+    }
+  });
+
+  it('FIELD_SCALE is the validated 1.40', () => {
+    expect(FIELD_SCALE).toBeCloseTo(1.40, 6);
   });
 });
