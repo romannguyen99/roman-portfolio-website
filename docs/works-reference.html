@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Works — reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;450;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --c-near-black:#070806; --c-warm-black:#100D08;
+    --c-olive:#2D301C; --c-moss:#474729;
+    --c-amber:#493019; --c-bronze:#704A22; --c-ochre:#987032; --c-gold:#AD853D;
+    --c-teal:#142724;
+    --c-text:#F4F2EE; --c-text-dim:rgba(244,242,238,0.65); --c-text-faint:rgba(244,242,238,0.52);
+    --font-sans:'Space Grotesk',system-ui,-apple-system,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  body{
+    font-family:var(--font-sans); color:var(--c-text); -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(120% 80% at 80% -10%, rgba(118,81,38,0.10), transparent 55%),
+      linear-gradient(180deg, var(--c-near-black) 0%, var(--c-warm-black) 60%, var(--c-near-black) 100%);
+    min-height:100vh;
+  }
+  /* film grain to match the hero treatment */
+  body::after{
+    content:""; position:fixed; inset:0; z-index:50; pointer-events:none; opacity:0.045; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:150px 150px;
+  }
+
+  .works{max-width:1120px; margin:0 auto; padding:120px 48px 140px;}
+  .eyebrow{font-size:11.5px; letter-spacing:3px; color:var(--c-text-faint); text-transform:uppercase;}
+  .head-title{font-size:clamp(34px,4vw,52px); font-weight:480; letter-spacing:-0.04em; margin-top:18px; line-height:1.02;}
+  .intro{max-width:540px; margin-top:20px; color:var(--c-text-dim); font-size:16px; line-height:1.6; font-weight:400;}
+
+  .works-grid{display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:64px;}
+
+  .work-card{
+    position:relative; border-radius:18px; overflow:hidden;
+    background:linear-gradient(180deg, rgba(244,242,238,0.045), rgba(16,13,8,0.30));
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(244,242,238,0.09);
+    transition:transform .6s cubic-bezier(.2,.7,.2,1), border-color .6s ease, box-shadow .6s ease;
+  }
+  .work-card:hover{
+    transform:translateY(-5px);
+    border-color:rgba(173,133,61,0.38);
+    box-shadow:0 24px 60px -28px rgba(173,133,61,0.30), inset 0 1px 0 rgba(244,242,238,0.05);
+  }
+
+  .work-media{position:relative; height:188px; overflow:hidden; border-bottom:1px solid rgba(244,242,238,0.06);
+    background:radial-gradient(120% 120% at 70% 10%, rgba(118,81,38,0.14), transparent 60%);}
+  .work-media svg{width:100%; height:100%; display:block;}
+
+  .work-body{padding:26px 28px 28px;}
+  .tag{font-size:10.5px; letter-spacing:2.4px; text-transform:uppercase; color:var(--c-ochre);}
+  .title{font-size:23px; font-weight:480; letter-spacing:-0.025em; margin-top:12px; line-height:1.08;}
+  .summary{margin-top:12px; color:var(--c-text-dim); font-size:14.5px; line-height:1.55;}
+  .tools{margin-top:18px; color:var(--c-text-faint); font-size:12px; letter-spacing:0.3px;}
+  .foot{display:flex; align-items:center; justify-content:space-between; margin-top:22px;
+    padding-top:18px; border-top:1px solid rgba(244,242,238,0.07);}
+  .metric{font-size:13.5px; color:var(--c-text); font-weight:450;}
+  .metric b{color:var(--c-gold); font-weight:500;}
+  .cta{font-size:12px; letter-spacing:0.4px; color:var(--c-text-dim); display:inline-flex; align-items:center; gap:7px; transition:color .4s ease;}
+  .cta .arrow{transition:transform .4s ease;}
+  .work-card:hover .cta{color:#fff;}
+  .work-card:hover .cta .arrow{transform:translateX(4px);}
+
+  /* ============ motif shared ============ */
+  .dot, .node{transform-box:fill-box;}
+
+  /* ---- 1. Churn: two drifting clusters across a decision boundary ---- */
+  .m-churn .retained{animation:drift1 19s ease-in-out infinite;}
+  .m-churn .atrisk{animation:drift2 22s ease-in-out infinite;}
+  .m-churn .boundary{stroke-dasharray:5 8; animation:dash 26s linear infinite;}
+  @keyframes drift1{0%,100%{transform:translate(-3px,2px);}50%{transform:translate(3px,-2px);}}
+  @keyframes drift2{0%,100%{transform:translate(3px,-2px);}50%{transform:translate(-3px,3px);}}
+  @keyframes dash{to{stroke-dashoffset:-130;}}
+
+  /* ---- 2. Forecast: breathing confidence band + trend ---- */
+  .m-fc .band{transform-origin:center; animation:breathe 11s ease-in-out infinite;}
+  .m-fc .tip{animation:pulse 4.5s ease-in-out infinite;}
+  @keyframes breathe{0%,100%{transform:scaleY(0.86); opacity:.5;}50%{transform:scaleY(1.08); opacity:.85;}}
+  @keyframes pulse{0%,100%{r:3.2; opacity:.6;}50%{r:5; opacity:1;}}
+
+  /* ---- 3. Sentiment: pulsing social graph, nodes shift warm<->olive ---- */
+  .m-sent .edge{animation:edgep 7s ease-in-out infinite;}
+  .m-sent .node{animation:nodep 6s ease-in-out infinite;}
+  .m-sent .pos{animation:warmth 9s ease-in-out infinite;}
+  .m-sent .neg{animation:warmth 9s ease-in-out infinite reverse;}
+  @keyframes edgep{0%,100%{opacity:.18;}50%{opacity:.5;}}
+  @keyframes nodep{0%,100%{transform:scale(.9);}50%{transform:scale(1.12);}}
+  @keyframes warmth{0%,100%{fill:var(--c-moss);}50%{fill:var(--c-gold);}}
+
+  /* ---- 4. RecSys: bipartite connections lighting up in sequence ---- */
+  .m-rec .link{stroke-dasharray:200; stroke-dashoffset:0; stroke-opacity:.25; animation:light 9s ease-in-out infinite;}
+  .m-rec .unode{animation:nodep 6s ease-in-out infinite;}
+  .m-rec .inode{animation:nodep 6s ease-in-out infinite;}
+  @keyframes light{0%,100%{stroke-opacity:.20; stroke-dashoffset:40;}50%{stroke-opacity:.78; stroke-dashoffset:0;}}
+
+  @media (max-width:640px){
+    .works{padding:84px 24px 100px;}
+    .works-grid{grid-template-columns:1fr; gap:22px; margin-top:44px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<section class="works" id="work">
+  <header>
+    <h2 class="head-title">Selected Works</h2>
+    <p class="intro">A collection of data science projects exploring prediction, automation, insight generation, and decision intelligence.</p>
+  </header>
+
+  <div class="works-grid">
+
+    <!-- 1. Customer Churn Prediction -->
+    <article class="work-card">
+      <div class="work-media">
+        <svg class="m-churn" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice">
+          <path class="boundary" d="M40,168 C150,150 250,86 366,30" fill="none" stroke="#AD853D" stroke-opacity="0.40" stroke-width="1.4"/>
+          <g class="retained" fill="#6b6c44">
+            <circle cx="70" cy="150" r="4"/><circle cx="95" cy="165" r="3.4"/><circle cx="110" cy="135" r="4.2"/>
+            <circle cx="130" cy="158" r="3.2"/><circle cx="85" cy="128" r="3.6"/><circle cx="122" cy="170" r="3"/>
+            <circle cx="150" cy="150" r="3.8"/><circle cx="100" cy="150" r="3"/><circle cx="140" cy="130" r="3.4"/>
+            <circle cx="62" cy="170" r="3"/>
+          </g>
+          <g class="atrisk" fill="#AD853D">
+            <circle cx="255" cy="55" r="4"/><circle cx="280" cy="40" r="3.6"/><circle cx="300" cy="70" r="4.2"/>
+            <circle cx="270" cy="80" r="3.2"/><circle cx="320" cy="50" r="3.6"/><circle cx="295" cy="95" r="3"/>
+            <circle cx="330" cy="80" r="3.8"/><circle cx="250" cy="78" r="3"/><circle cx="312" cy="32" r="3.4"/>
+            <circle cx="285" cy="62" r="3"/>
+          </g>
+        </svg>
+      </div>
+      <div class="work-body">
+        <div class="tag">Prediction</div>
+        <h3 class="title">Customer Churn Prediction</h3>
+        <p class="summary">Flagging at-risk accounts before they lapse, so retention can act early.</p>
+        <div class="tools">Python · scikit-learn · XGBoost</div>
+        <div class="foot">
+          <span class="metric"><b>↓ 23%</b> churn in pilot</span>
+          <a class="cta" href="#">View case study <span class="arrow">→</span></a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 2. Sales Forecasting Dashboard -->
+    <article class="work-card">
+      <div class="work-media">
+        <svg class="m-fc" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice">
+          <g stroke="#F4F2EE" stroke-opacity="0.07" stroke-width="1">
+            <line x1="0" y1="44" x2="400" y2="44"/><line x1="0" y1="92" x2="400" y2="92"/><line x1="0" y1="140" x2="400" y2="140"/>
+          </g>
+          <path class="band" d="M20,132 L70,118 L120,124 L170,94 L220,102 L270,68 L320,54 L380,40
+                                  L380,72 L320,86 L270,100 L220,134 L170,126 L120,156 L70,150 L20,164 Z"
+                fill="#AD853D" fill-opacity="0.16"/>
+          <polyline points="20,150 70,134 120,140 170,110 220,118 270,84 320,68 380,52"
+                    fill="none" stroke="#AD853D" stroke-opacity="0.85" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle class="tip" cx="380" cy="52" r="3.6" fill="#F4F2EE"/>
+        </svg>
+      </div>
+      <div class="work-body">
+        <div class="tag">Forecasting</div>
+        <h3 class="title">Sales Forecasting Dashboard</h3>
+        <p class="summary">Turning noisy history into a forward view leaders can plan against.</p>
+        <div class="tools">Python · Prophet · Plotly</div>
+        <div class="foot">
+          <span class="metric"><b>92%</b> forecast accuracy</span>
+          <a class="cta" href="#">View case study <span class="arrow">→</span></a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3. Sentiment Analysis from Social Data -->
+    <article class="work-card">
+      <div class="work-media">
+        <svg class="m-sent" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice">
+          <g class="edges" stroke="#AD853D" stroke-width="1.2">
+            <line class="edge" x1="80" y1="60" x2="150" y2="40"/>
+            <line class="edge" x1="80" y1="60" x2="120" y2="120" style="animation-delay:-2s"/>
+            <line class="edge" x1="150" y1="40" x2="210" y2="90" style="animation-delay:-1s"/>
+            <line class="edge" x1="210" y1="90" x2="120" y2="120" style="animation-delay:-3s"/>
+            <line class="edge" x1="210" y1="90" x2="190" y2="150" style="animation-delay:-1.5s"/>
+            <line class="edge" x1="210" y1="90" x2="285" y2="70" style="animation-delay:-2.5s"/>
+            <line class="edge" x1="285" y1="70" x2="255" y2="38" style="animation-delay:-0.5s"/>
+            <line class="edge" x1="285" y1="70" x2="325" y2="128" style="animation-delay:-3.5s"/>
+            <line class="edge" x1="190" y1="150" x2="325" y2="128" style="animation-delay:-2.2s"/>
+          </g>
+          <g class="nodes">
+            <circle class="node pos" cx="80"  cy="60"  r="7"/>
+            <circle class="node neg" cx="150" cy="40"  r="6" style="animation-delay:-1s,-2s"/>
+            <circle class="node pos" cx="210" cy="90"  r="9" style="animation-delay:-2s,-1s"/>
+            <circle class="node neg" cx="120" cy="120" r="6" style="animation-delay:-3s,-3s"/>
+            <circle class="node pos" cx="190" cy="150" r="6.5" style="animation-delay:-1.5s,-2.5s"/>
+            <circle class="node neg" cx="285" cy="70"  r="8" style="animation-delay:-0.8s,-1.2s"/>
+            <circle class="node pos" cx="255" cy="38"  r="5.5" style="animation-delay:-2.6s,-0.6s"/>
+            <circle class="node neg" cx="325" cy="128" r="6" style="animation-delay:-1.1s,-3.1s"/>
+          </g>
+        </svg>
+      </div>
+      <div class="work-body">
+        <div class="tag">Natural Language</div>
+        <h3 class="title">Sentiment Analysis from Social Data</h3>
+        <p class="summary">Reading the mood of the crowd across millions of unstructured posts.</p>
+        <div class="tools">Python · spaCy · Transformers</div>
+        <div class="foot">
+          <span class="metric"><b>1.2M</b> posts classified</span>
+          <a class="cta" href="#">View case study <span class="arrow">→</span></a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4. Recommendation Engine -->
+    <article class="work-card">
+      <div class="work-media">
+        <svg class="m-rec" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice">
+          <g class="links" stroke="#AD853D" stroke-width="1.4" fill="none">
+            <path class="link" d="M96,40 L304,38" style="animation-delay:0s"/>
+            <path class="link" d="M96,40 L304,84" style="animation-delay:-1.4s"/>
+            <path class="link" d="M96,82 L304,38" style="animation-delay:-2.8s"/>
+            <path class="link" d="M96,82 L304,130" style="animation-delay:-4.2s"/>
+            <path class="link" d="M96,124 L304,84" style="animation-delay:-5.6s"/>
+            <path class="link" d="M96,124 L304,150" style="animation-delay:-7s"/>
+            <path class="link" d="M96,150 L304,130" style="animation-delay:-3.5s"/>
+          </g>
+          <g class="unode" fill="#5b5c39">
+            <circle cx="96" cy="40" r="6"/><circle cx="96" cy="82" r="6"/><circle cx="96" cy="124" r="6"/><circle cx="96" cy="150" r="6"/>
+          </g>
+          <g class="inode" fill="#AD853D" style="animation-delay:-3s">
+            <circle cx="304" cy="38" r="6"/><circle cx="304" cy="84" r="6"/><circle cx="304" cy="130" r="6"/><circle cx="304" cy="150" r="6"/>
+          </g>
+        </svg>
+      </div>
+      <div class="work-body">
+        <div class="tag">Personalization</div>
+        <h3 class="title">Recommendation Engine</h3>
+        <p class="summary">Matching people to what they will value next, at scale and in real time.</p>
+        <div class="tools">Python · TensorFlow · FAISS</div>
+        <div class="foot">
+          <span class="metric"><b>+18%</b> recommendation CTR</span>
+          <a class="cta" href="#">View case study <span class="arrow">→</span></a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+</body>
+</html>
