@@ -1,4 +1,4 @@
-import { computeCircleLayout, capDpr, isMobile } from '../../lib/heroLayout.js';
+import { computeCircleLayout, capDpr, isMobile, computeFieldFraming, FIELD_SCALE } from '../../lib/heroLayout.js';
 
 // VERT: copy of the <script id="vert"> element from docs/hero-reference.html, verbatim.
 const VERT = `
@@ -14,6 +14,8 @@ const FRAG = `
     uniform float uRadius;   // device px
     uniform float uReduced;  // 1.0 = freeze motion
     uniform float uMobile;   // 1.0 = portrait/mobile composition
+    uniform float uFpp;      // field units per device px (cover-fit isotropic zoom)
+    uniform float uOy;       // vertical field-space offset (cover-fit crop anchor)
 
     // ---- low-frequency value noise ----
     float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
@@ -101,9 +103,10 @@ const FRAG = `
       vec2 frag = gl_FragCoord.xy;
       float aspect = uRes.x / uRes.y;
       vec2 uv = frag / uRes;                          // 0..1, y from bottom
-      float scale = 1.40;
-      vec2 P  = vec2(uv.x*aspect, uv.y) * scale;      // field space
-      vec2 cP = vec2((uCenter.x/uRes.x)*aspect, uCenter.y/uRes.y) * scale;
+      // cover-fit field framing — uFpp (isotropic zoom) & uOy (vertical crop anchor) come from
+      // computeFieldFraming() in resize(); identity at aspect<=1.6, zooms in when wider.
+      vec2 P  = frag * uFpp + vec2(0.0, uOy);         // field space
+      vec2 cP = uCenter * uFpp + vec2(0.0, uOy);
 
       // ===== circle = a region where the SHARED field's UVs are optically transformed =====
       const float IOR         = 1.42;          // glass index of refraction (range 1.3-1.5). Higher IOR = stronger bending.
@@ -111,7 +114,7 @@ const FRAG = `
       const float DEPTH_SCALE = 0.60;           // starting value; reduce first if a compressed annulus appears near the rim.
 
       float r    = distance(frag, uCenter) / uRadius; // 0 centre .. 1 edge .. >1 outside
-      float fR   = (uRadius / uRes.y) * scale;        // circle radius in field space
+      float fR   = uRadius * uFpp;                    // circle radius in field space
       vec2  rel  = P - cP;
       vec2  tang = normalize(vec2(-rel.y, rel.x) + 1e-6);
 
@@ -184,7 +187,8 @@ export function initHeroField(canvas) {
 
   const U = (n) => gl.getUniformLocation(prog, n);
   const uRes = U('uRes'), uT = U('uT'), uCenter = U('uCenter'),
-        uRadius = U('uRadius'), uReduced = U('uReduced'), uMobile = U('uMobile');
+        uRadius = U('uRadius'), uReduced = U('uReduced'), uMobile = U('uMobile'),
+        uFpp = U('uFpp'), uOy = U('uOy');
   gl.uniform1f(uReduced, reduced ? 1.0 : 0.0);
 
   let dpr = 1;
@@ -199,6 +203,9 @@ export function initHeroField(canvas) {
     gl.uniform2f(uCenter, cx * dpr, (H - cyTop) * dpr); // y flipped to bottom-origin
     gl.uniform1f(uRadius, (D / 2) * dpr);
     gl.uniform1f(uMobile, isMobile(W) ? 1.0 : 0.0);
+    const { m, Oy } = computeFieldFraming(W, H);
+    gl.uniform1f(uFpp, (FIELD_SCALE / canvas.height) * m); // canvas.height is device px
+    gl.uniform1f(uOy, Oy);
   }
   window.addEventListener('resize', resize);
   resize();
