@@ -25,3 +25,22 @@ test('the page has no horizontal overflow with the works section, at extremes', 
     expect(overflow, `horizontal overflow at ${w}x${h}`).toBe(false);
   }
 });
+
+test('cards are fully visible under reduced motion (not gated by the reveal)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const cards = page.locator('.work-card');
+  await expect(cards).toHaveCount(4);
+  for (let i = 0; i < 4; i++) {
+    await expect(cards.nth(i)).toHaveCSS('opacity', '1');
+  }
+});
+
+test('cards reveal to full opacity once scrolled into view', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const firstCard = page.locator('.work-card').first();
+  await firstCard.scrollIntoViewIfNeeded();
+  await expect(firstCard).toHaveCSS('opacity', '1');
+});

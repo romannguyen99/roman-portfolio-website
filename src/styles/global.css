@@ -26,3 +26,18 @@ a { text-decoration: none; color: inherit; }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 #work { scroll-margin-top: 24px; }
+
+/* scroll reveal — hidden initial state applies only when JS + motion opt in (.js-reveal on <html>) */
+.js-reveal [data-reveal] {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity .7s ease, transform .7s ease;
+  transition-delay: var(--reveal-delay, 0s);
+}
+.js-reveal [data-reveal].revealed { opacity: 1; transform: none; }
+
+/* motifs stay idle until their card is in view (off-screen cards cost nothing) */
+[data-reveal]:not(.revealed) svg * { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal [data-reveal] { opacity: 1; transform: none; transition: none; }
+}
