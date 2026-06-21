@@ -19,8 +19,12 @@ Keep it current as the site grows.
   and full reduced-motion support. Validated reference: `docs/works-reference.html`; spec + plan
   under `docs/superpowers/`. Built from `src/components/Works.astro` + `works/` + tested
   `src/lib/works.js`, with a reusable `src/scripts/reveal.js`.
-- **Milestones 3–5 (roadmap).** Thoughts, About Me, Contact/Footer — specified below at
-  direction level; each gets a focused build pass.
+- **Milestone 3 — Thoughts (shipped).** Editorial article list of title-led rows (non-navigating
+  `<h3>` placeholders) over a drifting blurred-orb backdrop; reuses the shared `src/scripts/reveal.js`
+  (made idempotent for multi-section use). Validated reference: `docs/thoughts-reference.html`. Built
+  from `src/components/Thoughts.astro` + `thoughts/` + tested `src/lib/thoughts.js`.
+- **Milestones 4–5 (roadmap).** About Me, Contact/Footer — specified below at direction level;
+  each gets a focused build pass.
 - **Content:** placeholder copy from the project brief (example projects, blog posts, bio). Real
   content and links get swapped in later.
 - **Bilingual:** the `EN / VN` selector is **visual-only** for now. No i18n wiring yet; build the
