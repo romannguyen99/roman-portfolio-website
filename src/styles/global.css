@@ -38,6 +38,8 @@ html { scroll-behavior: smooth; }
 /* motifs stay idle until their card is in view (off-screen cards cost nothing) */
 [data-reveal]:not(.revealed) svg * { animation-play-state: paused; }
 
+/* belt-and-suspenders: reveal.js already skips adding .js-reveal under reduced motion,
+   so this only matters if a future caller adds it anyway — content stays visible regardless */
 @media (prefers-reduced-motion: reduce) {
   .js-reveal [data-reveal] { opacity: 1; transform: none; transition: none; }
 }

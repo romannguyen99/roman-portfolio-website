@@ -31,6 +31,9 @@ test('cards are fully visible under reduced motion (not gated by the reveal)', a
   await page.goto('/');
   const cards = page.locator('.work-card');
   await expect(cards).toHaveCount(4);
+  // reveal.js must NOT opt into the hidden state under reduced motion
+  const hasJsReveal = await page.evaluate(() => document.documentElement.classList.contains('js-reveal'));
+  expect(hasJsReveal).toBe(false);
   for (let i = 0; i < 4; i++) {
     await expect(cards.nth(i)).toHaveCSS('opacity', '1');
   }
@@ -41,6 +44,8 @@ test('cards reveal to full opacity once scrolled into view', async ({ page }) =>
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   const firstCard = page.locator('.work-card').first();
+  // below the full-viewport hero, so it starts hidden until scrolled into view
+  await expect(firstCard).toHaveCSS('opacity', '0');
   await firstCard.scrollIntoViewIfNeeded();
   await expect(firstCard).toHaveCSS('opacity', '1');
 });
