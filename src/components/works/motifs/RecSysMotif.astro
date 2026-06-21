@@ -1,0 +1,31 @@
+---
+---
+<svg class="m-rec" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <g class="links" stroke="#AD853D" stroke-width="1.4" fill="none">
+    <path class="link" d="M96,40 L304,38"/>
+    <path class="link" d="M96,40 L304,84"  style="animation-delay:-1.4s"/>
+    <path class="link" d="M96,82 L304,38"  style="animation-delay:-2.8s"/>
+    <path class="link" d="M96,82 L304,130" style="animation-delay:-4.2s"/>
+    <path class="link" d="M96,124 L304,84" style="animation-delay:-5.6s"/>
+    <path class="link" d="M96,124 L304,150" style="animation-delay:-7s"/>
+    <path class="link" d="M96,150 L304,130" style="animation-delay:-3.5s"/>
+  </g>
+  <g class="unode" fill="#6b6c44">
+    <circle cx="96" cy="40" r="6"/><circle cx="96" cy="82" r="6"/><circle cx="96" cy="124" r="6"/><circle cx="96" cy="150" r="6"/>
+  </g>
+  <g class="inode" fill="#AD853D">
+    <circle cx="304" cy="38" r="6"/><circle cx="304" cy="84" r="6"/><circle cx="304" cy="130" r="6"/><circle cx="304" cy="150" r="6"/>
+  </g>
+</svg>
+<style>
+  svg { width: 100%; height: 100%; display: block; }
+  .unode, .inode { transform-box: fill-box; transform-origin: center; }
+  .link { stroke-dasharray: 200; stroke-dashoffset: 0; stroke-opacity: .25; }
+  @media (prefers-reduced-motion: no-preference) {
+    .link  { animation: rec-light 9s ease-in-out infinite; }
+    .unode { animation: rec-node 6s ease-in-out infinite; }
+    .inode { animation: rec-node 6s ease-in-out infinite; animation-delay: -3s; }
+  }
+  @keyframes rec-light { 0%,100% { stroke-opacity: .20; stroke-dashoffset: 40; } 50% { stroke-opacity: .78; stroke-dashoffset: 0; } }
+  @keyframes rec-node  { 0%,100% { transform: scale(.92); } 50% { transform: scale(1.12); } }
+</style>

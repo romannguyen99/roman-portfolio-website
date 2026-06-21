@@ -21,3 +21,8 @@
 html, body { background: var(--c-near-black); overflow-x: hidden; }
 body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; color: var(--c-text); }
 a { text-decoration: none; color: inherit; }
+
+/* smooth in-page navigation (the hero nav anchors to #work); calm under reduced motion */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+#work { scroll-margin-top: 24px; }

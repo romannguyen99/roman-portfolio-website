@@ -1,0 +1,29 @@
+---
+---
+<svg class="m-churn" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <path class="boundary" d="M40,168 C150,150 250,86 366,30" fill="none" stroke="#AD853D" stroke-opacity="0.40" stroke-width="1.4"/>
+  <g class="retained" fill="#6b6c44">
+    <circle cx="70" cy="150" r="4"/><circle cx="95" cy="165" r="3.4"/><circle cx="110" cy="135" r="4.2"/>
+    <circle cx="130" cy="158" r="3.2"/><circle cx="85" cy="128" r="3.6"/><circle cx="122" cy="170" r="3"/>
+    <circle cx="150" cy="150" r="3.8"/><circle cx="100" cy="150" r="3"/><circle cx="140" cy="130" r="3.4"/>
+    <circle cx="62" cy="170" r="3"/>
+  </g>
+  <g class="atrisk" fill="#AD853D">
+    <circle cx="255" cy="55" r="4"/><circle cx="280" cy="40" r="3.6"/><circle cx="300" cy="70" r="4.2"/>
+    <circle cx="270" cy="80" r="3.2"/><circle cx="320" cy="50" r="3.6"/><circle cx="295" cy="95" r="3"/>
+    <circle cx="330" cy="80" r="3.8"/><circle cx="250" cy="78" r="3"/><circle cx="312" cy="32" r="3.4"/>
+    <circle cx="285" cy="62" r="3"/>
+  </g>
+</svg>
+<style>
+  svg { width: 100%; height: 100%; display: block; }
+  .boundary { stroke-dasharray: 5 8; }
+  @media (prefers-reduced-motion: no-preference) {
+    .retained { animation: churn-drift1 19s ease-in-out infinite; }
+    .atrisk   { animation: churn-drift2 22s ease-in-out infinite; }
+    .boundary { animation: churn-dash 26s linear infinite; }
+  }
+  @keyframes churn-drift1 { 0%,100% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } }
+  @keyframes churn-drift2 { 0%,100% { transform: translate(3px, -2px); } 50% { transform: translate(-3px, 3px); } }
+  @keyframes churn-dash   { to { stroke-dashoffset: -130; } }
+</style>

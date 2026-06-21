@@ -1,0 +1,64 @@
+---
+import ChurnMotif from './motifs/ChurnMotif.astro';
+import ForecastMotif from './motifs/ForecastMotif.astro';
+import SentimentMotif from './motifs/SentimentMotif.astro';
+import RecSysMotif from './motifs/RecSysMotif.astro';
+
+const { work, index = 0 } = Astro.props;
+const MOTIF_COMPONENTS = {
+  churn: ChurnMotif,
+  forecast: ForecastMotif,
+  sentiment: SentimentMotif,
+  recsys: RecSysMotif,
+};
+const Motif = MOTIF_COMPONENTS[work.motif];
+---
+<article class="work-card" data-reveal style={`--reveal-delay:${index * 0.08}s`}>
+  <div class="work-media"><Motif /></div>
+  <div class="work-body">
+    <div class="tag">{work.category}</div>
+    <h3 class="title">{work.title}</h3>
+    <p class="summary">{work.summary}</p>
+    <div class="tools">{work.tools.join(' · ')}</div>
+    <div class="foot">
+      <span class="metric"><b>{work.metric.value}</b> {work.metric.label}</span>
+      <!-- visual-only / non-navigating placeholder; becomes an <a> when case studies exist -->
+      <span class="cta">View case study <span class="arrow">→</span></span>
+    </div>
+  </div>
+</article>
+<style>
+  .work-card {
+    position: relative; border-radius: 18px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(244,242,238,0.045), rgba(16,13,8,0.30));
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(244,242,238,0.09);
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), border-color .6s ease, box-shadow .6s ease;
+  }
+  .work-media {
+    position: relative; height: 188px; overflow: hidden;
+    border-bottom: 1px solid rgba(244,242,238,0.06);
+    background: radial-gradient(120% 120% at 70% 10%, rgba(118,81,38,0.14), transparent 60%);
+  }
+  .work-body { padding: 26px 28px 28px; }
+  .tag { font-size: 10.5px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--c-ochre); }
+  .title { font-size: 23px; font-weight: 480; letter-spacing: -0.025em; margin-top: 12px; line-height: 1.08; }
+  .summary { margin-top: 12px; color: var(--c-text-dim); font-size: 14.5px; line-height: 1.55; }
+  .tools { margin-top: 18px; color: var(--c-text-faint); font-size: 12px; letter-spacing: 0.3px; }
+  .foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(244,242,238,0.07);
+  }
+  .metric { font-size: 13.5px; color: var(--c-text); font-weight: 450; }
+  .metric b { color: var(--c-gold); font-weight: 500; }
+  .cta { font-size: 12px; letter-spacing: 0.4px; color: var(--c-text-dim); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; transition: color .4s ease; }
+  .cta .arrow { transition: transform .4s ease; }
+  @media (hover: hover) {
+    .work-card:hover { transform: translateY(-5px); border-color: rgba(173,133,61,0.38); box-shadow: 0 24px 60px -28px rgba(173,133,61,0.30), inset 0 1px 0 rgba(244,242,238,0.05); }
+    .work-card:hover .cta { color: #fff; }
+    .work-card:hover .cta .arrow { transform: translateX(4px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work-card { transition: none; }
+  }
+</style>

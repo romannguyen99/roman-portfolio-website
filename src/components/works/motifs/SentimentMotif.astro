@@ -1,0 +1,40 @@
+---
+---
+<svg class="m-sent" viewBox="0 0 400 188" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <g class="edges" stroke="#AD853D" stroke-width="1.2">
+    <line class="edge" x1="80" y1="60" x2="150" y2="40"/>
+    <line class="edge" x1="80" y1="60" x2="120" y2="120" style="animation-delay:-2s"/>
+    <line class="edge" x1="150" y1="40" x2="210" y2="90" style="animation-delay:-1s"/>
+    <line class="edge" x1="210" y1="90" x2="120" y2="120" style="animation-delay:-3s"/>
+    <line class="edge" x1="210" y1="90" x2="190" y2="150" style="animation-delay:-1.5s"/>
+    <line class="edge" x1="210" y1="90" x2="285" y2="70" style="animation-delay:-2.5s"/>
+    <line class="edge" x1="285" y1="70" x2="255" y2="38" style="animation-delay:-0.5s"/>
+    <line class="edge" x1="285" y1="70" x2="325" y2="128" style="animation-delay:-3.5s"/>
+    <line class="edge" x1="190" y1="150" x2="325" y2="128" style="animation-delay:-2.2s"/>
+  </g>
+  <g class="nodes">
+    <circle class="node pos" cx="80"  cy="60"  r="7"/>
+    <circle class="node neg" cx="150" cy="40"  r="6"   style="animation-delay:-1s,-2s"/>
+    <circle class="node pos" cx="210" cy="90"  r="9"   style="animation-delay:-2s,-1s"/>
+    <circle class="node neg" cx="120" cy="120" r="6"   style="animation-delay:-3s,-3s"/>
+    <circle class="node pos" cx="190" cy="150" r="6.5" style="animation-delay:-1.5s,-2.5s"/>
+    <circle class="node neg" cx="285" cy="70"  r="8"   style="animation-delay:-0.8s,-1.2s"/>
+    <circle class="node pos" cx="255" cy="38"  r="5.5" style="animation-delay:-2.6s,-0.6s"/>
+    <circle class="node neg" cx="325" cy="128" r="6"   style="animation-delay:-1.1s,-3.1s"/>
+  </g>
+</svg>
+<style>
+  svg { width: 100%; height: 100%; display: block; }
+  .node { transform-box: fill-box; transform-origin: center; }
+  .edge { opacity: .18; }
+  @media (prefers-reduced-motion: no-preference) {
+    .edge { animation: sent-edge 7s ease-in-out infinite; }
+    /* pos/neg each run TWO animations (scale + warmth); the two animation-delay
+       values in each node's style attribute map to [sent-node, sent-warm]. */
+    .pos { animation: sent-node 6s ease-in-out infinite, sent-warm 9s ease-in-out infinite; }
+    .neg { animation: sent-node 6s ease-in-out infinite, sent-warm 9s ease-in-out infinite reverse; }
+  }
+  @keyframes sent-edge { 0%,100% { opacity: .18; } 50% { opacity: .5; } }
+  @keyframes sent-node { 0%,100% { transform: scale(.9); } 50% { transform: scale(1.12); } }
+  @keyframes sent-warm { 0%,100% { fill: #474729; } 50% { fill: #AD853D; } }
+</style>
