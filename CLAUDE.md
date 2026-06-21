@@ -12,10 +12,15 @@ Keep it current as the site grows.
 
 ## Status & scope
 
-- **Milestone 1 — Hero (locked, validated).** The WebGL hero is fully designed and signed off
-  via an interactive shader preview. Build it first as a standalone milestone.
-- **Milestones 2–5 (roadmap).** Works, Thoughts, About Me, Contact/Footer — specified below at
-  direction level; each gets a focused build pass after the hero ships.
+- **Milestone 1 — Hero (shipped, validated).** The WebGL hero is fully built and signed off
+  via an interactive shader preview.
+- **Milestone 2 — Works ("Selected Works") (shipped).** 2-col (desktop) / 1-col (mobile) grid of
+  glass cards, each with a distinct animated SVG data-motif in a top media band, scroll-reveal,
+  and full reduced-motion support. Validated reference: `docs/works-reference.html`; spec + plan
+  under `docs/superpowers/`. Built from `src/components/Works.astro` + `works/` + tested
+  `src/lib/works.js`, with a reusable `src/scripts/reveal.js`.
+- **Milestones 3–5 (roadmap).** Thoughts, About Me, Contact/Footer — specified below at
+  direction level; each gets a focused build pass.
 - **Content:** placeholder copy from the project brief (example projects, blog posts, bio). Real
   content and links get swapped in later.
 - **Bilingual:** the `EN / VN` selector is **visual-only** for now. No i18n wiring yet; build the
